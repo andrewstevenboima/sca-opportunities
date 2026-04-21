@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SCA Opportunities — Jobs, Fellowships & Scholarships for African Students</title>
+  <meta name="description" content="Curated internships, jobs, fellowships, scholarships, and competitions for undergraduate students across African universities. A Student Companion AI product." />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="SCA Opportunities — for African Undergraduates" />
+  <meta property="og:description" content="Opportunities that match your journey. Curated for African undergraduate students." />
+  <meta property="og:type" content="website" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+
+  <!-- Google Fonts: Fraunces (display serif) + Inter (body) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ========== HEADER ========== -->
+  <header class="site-header" role="banner">
+    <div class="container header-inner">
+      <a href="#top" class="brand" aria-label="SCA Opportunities home">
+        <img src="assets/logo.png" alt="" class="brand-mark" />
+        <div class="brand-text">
+          <span class="brand-name">SCA Opportunities</span>
+          <span class="brand-sub">by Student Companion AI</span>
+        </div>
+      </a>
+
+      <nav class="site-nav" aria-label="Primary">
+        <a href="#opportunities">Opportunities</a>
+        <a href="#sources">Sources</a>
+        <a href="#about">About</a>
+        <a href="https://studentcompanionai.xyz" target="_blank" rel="noopener" class="nav-cta">Main Site ↗</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ========== HERO ========== -->
+  <section id="top" class="hero">
+    <div class="container hero-inner">
+      <span class="hero-eyebrow">For African Undergraduates</span>
+      <h1 class="hero-title">
+        Opportunities that match <em>your journey.</em>
+      </h1>
+      <p class="hero-sub">
+        Curated internships, jobs, fellowships, scholarships, and competitions — open to undergraduate students across African universities. Updated regularly, free to browse, no sign-up required.
+      </p>
+
+      <div class="hero-actions">
+        <a href="#opportunities" class="btn btn-primary">Browse Opportunities</a>
+        <a href="#quick-start" class="btn btn-ghost">I'm not sure where to start →</a>
+      </div>
+
+      <div class="hero-meta" aria-live="polite">
+        <span class="hero-stat"><strong id="stat-count">—</strong> live opportunities</span>
+        <span class="hero-dot" aria-hidden="true">•</span>
+        <span class="hero-stat"><strong id="stat-categories">5</strong> categories</span>
+        <span class="hero-dot" aria-hidden="true">•</span>
+        <span class="hero-stat">Last updated <strong id="stat-updated">—</strong></span>
+      </div>
+    </div>
+
+    <!-- Decorative line -->
+    <div class="hero-divider" aria-hidden="true"></div>
+  </section>
+
+  <!-- ========== QUICK START ========== -->
+  <section id="quick-start" class="quick-start">
+    <div class="container">
+      <h2 class="section-title">Start with what you need</h2>
+      <p class="section-sub">Tap a card to filter the feed instantly.</p>
+
+      <div class="quick-grid">
+        <button class="quick-card" data-quick="Internships" aria-label="Show internships">
+          <span class="quick-num">01</span>
+          <h3>I'm looking for an internship</h3>
+          <p>Summer, part-time, remote, or virtual placements for Year 1–4 students.</p>
+          <span class="quick-arrow">→</span>
+        </button>
+
+        <button class="quick-card" data-quick="Scholarships" aria-label="Show scholarships">
+          <span class="quick-num">02</span>
+          <h3>I want to study abroad</h3>
+          <p>Fully funded scholarships, exchanges, and masters — many with no IELTS.</p>
+          <span class="quick-arrow">→</span>
+        </button>
+
+        <button class="quick-card" data-quick="Fellowships" aria-label="Show fellowships">
+          <span class="quick-num">03</span>
+          <h3>I want a fellowship</h3>
+          <p>Leadership programs, youth fellowships, and career pipelines open to undergrads.</p>
+          <span class="quick-arrow">→</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== OPPORTUNITIES ========== -->
+  <section id="opportunities" class="opportunities">
+    <div class="container">
+      <div class="opp-header">
+        <h2 class="section-title">Live opportunities</h2>
+        <p class="section-sub">Filter by category, location, or eligibility. Tap an opportunity to open the original source.</p>
+      </div>
+
+      <!-- Category tabs -->
+      <div class="tabs" role="tablist" aria-label="Opportunity category">
+        <button class="tab is-active" role="tab" data-category="All" aria-selected="true">All</button>
+        <button class="tab" role="tab" data-category="Internships" aria-selected="false">Internships</button>
+        <button class="tab" role="tab" data-category="Jobs" aria-selected="false">Jobs</button>
+        <button class="tab" role="tab" data-category="Fellowships" aria-selected="false">Fellowships</button>
+        <button class="tab" role="tab" data-category="Scholarships" aria-selected="false">Scholarships</button>
+        <button class="tab" role="tab" data-category="Competitions" aria-selected="false">Competitions</button>
+      </div>
+
+      <!-- Filter bar -->
+      <div class="filters" role="group" aria-label="Filter opportunities">
+        <div class="filter">
+          <label for="filter-search">Search</label>
+          <input type="search" id="filter-search" placeholder="Title, organization, keyword…" />
+        </div>
+
+        <div class="filter">
+          <label for="filter-location">Location</label>
+          <select id="filter-location">
+            <option value="">Any location</option>
+          </select>
+        </div>
+
+        <div class="filter">
+          <label for="filter-year">Year of study</label>
+          <select id="filter-year">
+            <option value="">Any year</option>
+            <option value="Year 1">Year 1</option>
+            <option value="Year 2">Year 2</option>
+            <option value="Year 3">Year 3</option>
+            <option value="Year 4">Year 4</option>
+            <option value="Final Year">Final Year</option>
+            <option value="Recent Grad">Recent Grad</option>
+            <option value="Any">Any</option>
+          </select>
+        </div>
+
+        <div class="filter filter-toggles">
+          <label class="toggle">
+            <input type="checkbox" id="filter-remote" />
+            <span>Remote only</span>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" id="filter-open" />
+            <span>Deadline open</span>
+          </label>
+        </div>
+
+        <button id="filter-reset" class="btn btn-ghost btn-sm" type="button">Reset</button>
+      </div>
+
+      <!-- Results count -->
+      <div class="results-meta">
+        <span id="results-count" aria-live="polite">Loading…</span>
+        <span class="results-bookmark" id="bookmark-chip" hidden>
+          <span id="bookmark-count">0</span> saved this session
+        </span>
+      </div>
+
+      <!-- Cards grid -->
+      <div id="opp-grid" class="opp-grid" aria-busy="true">
+        <!-- JS injects opportunity cards here -->
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+        <div class="skeleton-card"></div>
+      </div>
+
+      <!-- Empty state -->
+      <div id="opp-empty" class="empty-state" hidden>
+        <h3>No opportunities match your filters</h3>
+        <p>Try adjusting your filters or <button class="link-btn" id="empty-reset">reset all filters</button>.</p>
+      </div>
+
+      <!-- Error state -->
+      <div id="opp-error" class="error-state" hidden>
+        <h3>We couldn't load opportunities right now</h3>
+        <p>This usually resolves in a few minutes. Check back shortly, or visit one of our sources below directly.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SOURCES ========== -->
+  <section id="sources" class="sources">
+    <div class="container">
+      <h2 class="section-title">Where we look</h2>
+      <p class="section-sub">We curate from reputable African, global development, and European sources.</p>
+
+      <div class="source-groups">
+        <div class="source-group">
+          <h3>African student networks</h3>
+          <ul>
+            <li><a href="https://opportunitydesk.org" target="_blank" rel="noopener">Opportunity Desk</a></li>
+            <li><a href="https://www.opportunitiesforafricans.com" target="_blank" rel="noopener">Opportunities For Africans</a></li>
+            <li><a href="https://www.youthop.com" target="_blank" rel="noopener">Youth Opportunities Hub</a></li>
+            <li><a href="https://www.afterschoolafrica.com" target="_blank" rel="noopener">After School Africa</a></li>
+            <li><a href="https://mcfscholars.org" target="_blank" rel="noopener">Mastercard Foundation Scholars</a></li>
+          </ul>
+        </div>
+
+        <div class="source-group">
+          <h3>ALU network</h3>
+          <ul>
+            <li><a href="https://job-boards.greenhouse.io/alu" target="_blank" rel="noopener">ALU Job Board</a></li>
+            <li><a href="https://www.alumniconnect.alueducation.com/noticeboard" target="_blank" rel="noopener">ALU Alumni Noticeboard</a></li>
+            <li><a href="https://www.alueducation.com" target="_blank" rel="noopener">ALU Careers Hub</a></li>
+          </ul>
+        </div>
+
+        <div class="source-group">
+          <h3>Global development & UN</h3>
+          <ul>
+            <li><a href="https://careers.un.org" target="_blank" rel="noopener">UN Careers</a></li>
+            <li><a href="https://reliefweb.int/jobs" target="_blank" rel="noopener">ReliefWeb Jobs</a></li>
+            <li><a href="https://www.devex.com" target="_blank" rel="noopener">Devex</a></li>
+            <li><a href="https://www.impactpool.org" target="_blank" rel="noopener">Impactpool</a></li>
+            <li><a href="https://unjobs.org" target="_blank" rel="noopener">UNJobs</a></li>
+          </ul>
+        </div>
+
+        <div class="source-group">
+          <h3>Internships & early careers</h3>
+          <ul>
+            <li><a href="https://www.internships.com" target="_blank" rel="noopener">Internships.com</a></li>
+            <li><a href="https://joinhandshake.com" target="_blank" rel="noopener">Handshake</a></li>
+            <li><a href="https://www.linkedin.com/jobs/student-jobs" target="_blank" rel="noopener">LinkedIn Student Jobs</a></li>
+            <li><a href="https://summerofcode.withgoogle.com" target="_blank" rel="noopener">Google Summer of Code</a></li>
+          </ul>
+        </div>
+
+        <div class="source-group">
+          <h3>Scholarships</h3>
+          <ul>
+            <li><a href="https://www.chevening.org" target="_blank" rel="noopener">Chevening</a></li>
+            <li><a href="https://www.daad.de/en" target="_blank" rel="noopener">DAAD</a></li>
+            <li><a href="https://erasmus-plus.ec.europa.eu" target="_blank" rel="noopener">Erasmus+</a></li>
+            <li><a href="https://cscuk.fcdo.gov.uk" target="_blank" rel="noopener">Commonwealth Scholarships</a></li>
+          </ul>
+        </div>
+
+        <div class="source-group">
+          <h3>Europe (for final-year & graduates)</h3>
+          <ul>
+            <li><a href="https://www.jobs.lu" target="_blank" rel="noopener">Jobs.lu</a></li>
+            <li><a href="https://www.moovijob.com" target="_blank" rel="noopener">Moovijob</a></li>
+            <li><a href="https://eures.europa.eu" target="_blank" rel="noopener">EURES</a></li>
+            <li><a href="https://eu-careers.europa.eu" target="_blank" rel="noopener">EPSO / EU Careers</a></li>
+            <li><a href="https://www.eib.org/en/about/jobs" target="_blank" rel="noopener">EIB Careers</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== EMAIL SIGNUP ========== -->
+  <section class="signup">
+    <div class="container signup-inner">
+      <div class="signup-copy">
+        <h2>Get weekly opportunities in your inbox</h2>
+        <p>A short, curated email every Sunday. No spam, unsubscribe any time.</p>
+      </div>
+
+      <form id="signup-form" class="signup-form" novalidate>
+        <label class="visually-hidden" for="signup-email">Email address</label>
+        <input type="email" id="signup-email" placeholder="your.email@university.edu" required />
+        <label class="signup-consent">
+          <input type="checkbox" id="signup-consent" required />
+          <span>I agree to receive a weekly email. I can unsubscribe any time.</span>
+        </label>
+        <button type="submit" class="btn btn-primary" id="signup-btn">Subscribe</button>
+        <p id="signup-msg" class="signup-msg" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- ========== ABOUT ========== -->
+  <section id="about" class="about">
+    <div class="container about-inner">
+      <div class="about-mark">
+        <img src="assets/logo.png" alt="Student Companion AI logo" />
+      </div>
+      <div class="about-copy">
+        <h2 class="section-title">About Student Companion AI</h2>
+        <p>
+          Student Companion AI is an AI-powered academic support platform built to help African university students learn smarter. SCA Opportunities is our way of extending that support beyond the classroom — curating the internships, fellowships, and scholarships that can change a student's trajectory.
+        </p>
+        <p>
+          <a href="https://studentcompanionai.xyz" target="_blank" rel="noopener" class="btn btn-ghost btn-sm">Visit studentcompanionai.xyz ↗</a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <img src="assets/logo.png" alt="" class="footer-mark" />
+        <div>
+          <p class="footer-name">SCA Opportunities</p>
+          <p class="footer-sub">A product of Student Companion AI</p>
+        </div>
+      </div>
+
+      <div class="footer-links">
+        <div>
+          <h4>Platform</h4>
+          <a href="#opportunities">Opportunities</a>
+          <a href="#sources">Sources</a>
+          <a href="#about">About</a>
+        </div>
+        <div>
+          <h4>Connect</h4>
+          <a href="mailto:studentcompanionai@gmail.com">Email us</a>
+          <a href="https://studentcompanionai.xyz" target="_blank" rel="noopener">Main site</a>
+          <a href="https://wa.me/250791920747" target="_blank" rel="noopener">WhatsApp</a>
+        </div>
+        <div>
+          <h4>Legal</h4>
+          <a href="#privacy">Privacy</a>
+          <a href="#terms">Terms</a>
+        </div>
+      </div>
+
+      <p class="footer-base">© <span id="year">2026</span> Student Companion AI. Opportunities that match your journey.</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

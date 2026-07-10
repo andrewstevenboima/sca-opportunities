@@ -1,0 +1,23 @@
+# SCA Opportunities — robots.txt
+# https://career.studentcompanionai.rw/
+
+User-agent: *
+Allow: /
+Disallow: /Code.gs
+
+# Sitemap location
+Sitemap: https://career.studentcompanionai.rw/sitemap.xml
+
+# Common bots — allow indexing
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+# Block resource-heavy scrapers if desired (uncomment to enable)
+# User-agent: AhrefsBot
+# Disallow: /

@@ -217,14 +217,16 @@
   <section class="signup">
     <div class="container">
       <div class="signup-inner">
-        <h2>Weekly opportunities in your inbox</h2>
-        <p>Curated 5-10 opportunities every Sunday. No spam. Unsubscribe anytime.</p>
+        <div class="signup-copy">
+          <h2>Weekly opportunities in your inbox</h2>
+          <p>Curated 5-10 opportunities every Sunday. No spam. Unsubscribe anytime.</p>
+        </div>
         <form id="signup-form" class="signup-form" novalidate>
           <label for="signup-email" class="sr-only">Your email</label>
           <input id="signup-email" type="email" placeholder="you@university.edu" required />
           <button type="submit" class="btn btn-primary">Subscribe</button>
+          <p id="signup-status" class="signup-status" aria-live="polite"></p>
         </form>
-        <p id="signup-status" class="signup-status" aria-live="polite"></p>
       </div>
     </div>
   </section>

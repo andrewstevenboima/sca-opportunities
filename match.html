@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Primary SEO -->
+  <title>CV Readiness Checker — SCA Opportunities</title>
+  <meta name="description" content="Upload your CV and see exactly which opportunities you can apply for, which are a stretch, and what is blocking you. Runs entirely on your device." />
+  <meta name="keywords" content="African students opportunities, undergraduate internships Africa, fellowships Africa, scholarships African students, Rwanda internships, Kenya jobs, Nigeria fellowships, Ghana scholarships, Sierra Leone opportunities, ALU careers, Student Companion AI" />
+  <meta name="author" content="Student Companion AI" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+  <link rel="canonical" href="https://career.studentcompanionai.rw/match.html" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Live Opportunities — SCA Opportunities" />
+  <meta property="og:description" content="Browse 40+ verified internships, jobs, fellowships, scholarships, volunteering, and competitions for African students. Filter by category, country, or eligibility year." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://career.studentcompanionai.rw/opportunities.html" />
+  <meta property="og:image" content="https://career.studentcompanionai.rw/assets/hero-photo.jpg" />
+  <meta property="og:image:width" content="1920" />
+  <meta property="og:image:height" content="1080" />
+  <meta property="og:site_name" content="SCA Opportunities" />
+  <meta property="og:locale" content="en_US" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Live Opportunities — SCA Opportunities" />
+  <meta name="twitter:description" content="Browse 40+ verified internships, jobs, fellowships, scholarships, volunteering, and competitions for African students. Filter by category, country, or eligibility year." />
+  <meta name="twitter:image" content="https://career.studentcompanionai.rw/assets/hero-photo.jpg" />
+
+  <!-- Theme + PWA -->
+  <meta name="theme-color" content="#1A1A1A" />
+  <link rel="manifest" href="site.webmanifest" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+  <link rel="apple-touch-icon" href="assets/logo.png" />
+
+  <!-- Google Fonts: Fraunces + Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- JSON-LD Structured Data — Organization -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Student Companion AI",
+    "alternateName": "SCA Opportunities",
+    "url": "https://career.studentcompanionai.rw/",
+    "logo": "https://career.studentcompanionai.rw/assets/logo.png",
+    "description": "Curated internships, jobs, fellowships, scholarships, and competitions for undergraduate students across African universities.",
+    "sameAs": [
+      "https://studentcompanionai.xyz",
+      "https://whatsapp.com/channel/0029VajtyR71SWt02iOsLK2l"
+    ],
+    "email": "studentcompanionai@gmail.com",
+    "areaServed": {
+      "@type": "Continent",
+      "name": "Africa"
+    }
+  }
+  </script>
+
+  <!-- JSON-LD Structured Data — WebSite with SearchAction -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "SCA Opportunities",
+    "url": "https://career.studentcompanionai.rw/",
+    "publisher": {
+      "@type": "Organization",
+      "name": "Student Companion AI"
+    },
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://career.studentcompanionai.rw/opportunities.html?search={search_term_string}"
+      },
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <script>
+    if (window.pdfjsLib) {
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+    }
+  </script>
+</head>
+<body>
+
+  <!-- Skip to content for accessibility -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- ========== HEADER ========== -->
+  <header class="site-header" role="banner">
+    <div class="container header-inner">
+      <a href="index.html" class="brand" aria-label="SCA Opportunities home">
+        <img src="assets/logo.png" alt="" class="brand-mark" />
+        <div class="brand-text">
+          <span class="brand-name">SCA Opportunities</span>
+          <span class="brand-sub">by Student Companion AI</span>
+        </div>
+      </a>
+
+      <button class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="site-nav">
+        <span></span><span></span><span></span>
+      </button>
+
+      <nav class="site-nav" id="site-nav" aria-label="Primary">
+        <a href="index.html">Home</a>
+        <a href="opportunities.html">Opportunities</a>
+        <a href="sources.html">Sources</a>
+        <a href="about.html">About</a>
+        <a href="match.html" class="nav-active" aria-current="page">CV Checker</a>
+        <a href="https://studentcompanionai.xyz" target="_blank" rel="noopener" class="nav-cta">Main Site ↗</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content" role="main">
+
+  <section class="page-header">
+    <div class="container">
+      <h1 class="page-title">CV Readiness Checker</h1>
+      <p class="page-lead">See which opportunities you can actually apply for right now — and exactly what is blocking the rest.</p>
+      <p class="rc-privacy"><strong>Your CV never leaves your device.</strong> It is read in your browser, nothing is uploaded, nothing is stored. Close this tab and it is gone.</p>
+    </div>
+  </section>
+
+  <section class="rc-setup">
+    <div class="container">
+
+      <div class="rc-step">
+        <h2><span class="rc-num">1</span> Add your CV</h2>
+        <div class="rc-upload">
+          <label class="rc-file">
+            <input type="file" id="cv-file" accept=".pdf,.docx,.txt" />
+            <span>Choose a file (PDF, Word or text)</span>
+          </label>
+          <p class="rc-or">or paste the text</p>
+          <textarea id="cv-paste" rows="5" placeholder="Paste your CV here…"></textarea>
+          <button type="button" class="btn btn-ghost" id="cv-paste-btn">Use pasted text</button>
+          <p class="cv-status" id="cv-status">Nothing loaded.</p>
+        </div>
+
+        <div class="rc-skills" id="skills-found" hidden>
+          <h3>Skill areas found in your CV</h3>
+          <div id="skills-list" class="rc-skill-list"></div>
+        </div>
+      </div>
+
+      <div class="rc-step">
+        <h2><span class="rc-num">2</span> A few facts we can't read from a CV</h2>
+        <p class="rc-hint">These are the things that actually block eligibility. Guessing them from a CV is unreliable, so we ask.</p>
+        <div class="rc-form">
+          <div class="rc-field">
+            <label for="p-country">Your nationality / where you can work</label>
+            <select id="p-country"><option value="">Select…</option></select>
+          </div>
+          <div class="rc-field">
+            <label for="p-level">Where you are in your studies</label>
+            <select id="p-level"><option value="">Select…</option></select>
+          </div>
+          <div class="rc-field">
+            <label for="p-years">Years of professional experience</label>
+            <select id="p-years">
+              <option value="">Select…</option>
+              <option value="0">None yet</option>
+              <option value="1">1 year</option>
+              <option value="2">2 years</option>
+              <option value="3">3 years</option>
+              <option value="5">5+ years</option>
+            </select>
+          </div>
+          <div class="rc-field rc-field-wide">
+            <label>Languages you can work in</label>
+            <div id="p-languages" class="rc-checks"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rc-actions">
+        <button type="button" class="btn btn-primary" id="run-btn">Check my readiness</button>
+        <button type="button" class="btn btn-ghost" id="clear-btn">Clear everything</button>
+      </div>
+
+      <div class="rc-summary" id="summary" hidden>
+        <div class="rc-sum-item"><strong id="sum-ready">0</strong><span>open to you</span></div>
+        <div class="rc-sum-item"><strong id="sum-stretch">0</strong><span>stretch</span></div>
+        <div class="rc-sum-item"><strong id="sum-blocked">0</strong><span>blocked</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="rc-results-section" id="results-section" hidden>
+    <div class="container">
+      <div class="rc-results-head">
+        <h2>Your results</h2>
+        <select id="result-filter">
+          <option value="all">Show all</option>
+          <option value="ready">Open to you</option>
+          <option value="stretch">Stretch</option>
+          <option value="blocked">Blocked</option>
+        </select>
+      </div>
+      <p class="rc-meaning"><strong>Open to you</strong> means we found no eligibility barrier — not that it is a strong fit. <strong>Stretch</strong> means you fall short on experience or study level. <strong>Blocked</strong> means something hard stands in the way: nationality, language, or a closed deadline. Always read the listing itself before applying.</p>
+      <div id="results" class="rc-list"></div>
+    </div>
+  </section>
+
+  </main>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <img src="assets/logo.png" alt="" class="footer-mark" />
+        <div>
+          <p class="footer-name">SCA Opportunities</p>
+          <p class="footer-sub">A product of Student Companion AI</p>
+        </div>
+      </div>
+
+      <div class="footer-links">
+        <div>
+          <h4>Platform</h4>
+          <a href="index.html">Home</a>
+          <a href="opportunities.html">Opportunities</a>
+          <a href="sources.html">Sources</a>
+          <a href="about.html">About</a>
+          <a href="match.html">CV Checker</a>
+        </div>
+        <div>
+          <h4>Connect</h4>
+          <a href="mailto:studentcompanionai@gmail.com">Email us</a>
+          <a href="https://studentcompanionai.xyz" target="_blank" rel="noopener">Main site</a>
+          <a href="https://whatsapp.com/channel/0029VajtyR71SWt02iOsLK2l" target="_blank" rel="noopener">WhatsApp Channel</a>
+        </div>
+        <div>
+          <h4>Legal</h4>
+          <a href="privacy.html">Privacy</a>
+          <a href="terms.html">Terms</a>
+        </div>
+      </div>
+
+      <p class="footer-base">© <span id="year">2026</span> Student Companion AI. Opportunities that match your journey.</p>
+    </div>
+  </footer>
+
+  <script src="match.js"></script>
+</body>
+</html>

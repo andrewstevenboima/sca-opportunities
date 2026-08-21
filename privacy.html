@@ -44,15 +44,15 @@
       <div class="legal-eyebrow">Legal</div>
       <h1 class="legal-title">Privacy &amp; Data Protection Policy</h1>
       <p class="legal-meta">
-        Version 1.0 · Effective 21 April 2026<br/>
+        Version 1.1 · Effective 21 August 2026<br/>
         Aligned with: Rwanda DPPL · AU AI Framework · GDPR Principles
       </p>
 
       <!-- Plain language summary -->
       <div class="legal-callout">
         <h2 class="legal-callout-title">Plain-language summary</h2>
-        <p><strong>We collect only what we need to send you our weekly newsletter — your email, nothing else.</strong> We do not sell your data. We do not share it. You own it, you can ask us to delete it at any time, and you can unsubscribe from any email we send you.</p>
-        <p>If you just browse the site without signing up for emails, we don't collect any personal data from you at all.</p>
+        <p><strong>Browsing the site and applying to opportunities never requires any personal data from you.</strong> If you subscribe to our weekly newsletter, we collect your email — nothing else. If you choose to create a free student account (currently open to East and West Africa), we also collect your name, region, country, year of study, and optionally your university, sex, date of birth, and a profile photo, so we can save your bookmarked opportunities across visits. Creating an account is always optional.</p>
+        <p>We do not sell your data, we do not share it with recruiters or listed organisations, and you can ask us to delete your account or newsletter subscription at any time.</p>
       </div>
 
       <!-- Section 1 -->
@@ -79,6 +79,7 @@
       <ul class="legal-list">
         <li>Anyone who visits <code>career.studentcompanionai.rw</code></li>
         <li>Students and others who subscribe to our weekly opportunities newsletter</li>
+        <li>Students who create a free account to save opportunities (currently open to East and West Africa)</li>
         <li>Anyone who contacts us through the email or WhatsApp channels linked on the site</li>
       </ul>
 
@@ -95,6 +96,14 @@
               <td>Only if you voluntarily subscribe to the weekly newsletter. Stored in our Subscribers sheet along with a timestamp and the page you subscribed from.</td>
             </tr>
             <tr>
+              <td>Account data</td>
+              <td>Only if you voluntarily create a free account: email, password (hashed, never visible to us), full name, region, country, year of study, and optionally university, sex, date of birth, and a profile photo. Accounts are currently open to students in East and West Africa; we plan to expand this scope.</td>
+            </tr>
+            <tr>
+              <td>Saved opportunities</td>
+              <td>If you're logged in and tap the ★ save button on a listing, we store which opportunity you saved against your account so it's there next time you visit. Guests can still bookmark opportunities without an account — those bookmarks just reset when the tab closes.</td>
+            </tr>
+            <tr>
               <td>Technical metadata</td>
               <td>Standard server logs from GitHub Pages (IP address, browser, visit time). Used only for security and availability monitoring. We do not link these to individuals.</td>
             </tr>
@@ -107,8 +116,9 @@
       </div>
 
       <div class="legal-callout legal-callout-strict">
-        <p><strong>What we do NOT collect:</strong> names, phone numbers, student IDs, university details, nationality, age, academic records, grades, financial data, location, or any sensitive personal data.</p>
-        <p><strong>We do not have user accounts.</strong> There is no login, no profile, no saved history. The "bookmark" feature on opportunity cards is in-memory only and resets when you close the tab.</p>
+        <p><strong>Creating an account is always optional.</strong> Browsing opportunities, using the CV Checker, and applying to any listing never requires an account or any personal data.</p>
+        <p><strong>What we do NOT collect, even with an account:</strong> phone numbers, student IDs, academic records, grades, financial data, precise location, or any data beyond what you enter on the signup and profile forms.</p>
+        <p><strong>Only you can see your own profile and saved opportunities.</strong> Account data is protected by database-level Row Level Security — not just app logic — so no other student, and no listed organisation, can ever read it.</p>
       </div>
 
       <!-- Section 4 -->
@@ -156,6 +166,7 @@
         <table class="legal-table">
           <tbody>
             <tr><th>Newsletter email</th><td>Until you unsubscribe, then deleted within 30 days.</td></tr>
+            <tr><th>Account &amp; saved opportunities</th><td>Until you delete your account — email us and we'll remove your account and all associated data within 30 days.</td></tr>
             <tr><th>Server logs</th><td>Held by GitHub per their standard retention policy (typically 90 days).</td></tr>
           </tbody>
         </table>
@@ -186,6 +197,10 @@
             <tr>
               <td>Google (Sheets &amp; Apps Script)</td>
               <td>Stores the opportunities data and the newsletter subscriber list. Google's <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">privacy policy</a> applies.</td>
+            </tr>
+            <tr>
+              <td>Supabase</td>
+              <td>Stores account data (authentication, profile, saved opportunities) for students who create an account. Protected by Row Level Security so only you can read your own data. Supabase's <a href="https://supabase.com/privacy" target="_blank" rel="noopener">privacy policy</a> applies.</td>
             </tr>
           </tbody>
         </table>

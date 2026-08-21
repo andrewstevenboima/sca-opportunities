@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>My Account — SCA Opportunities</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="canonical" href="https://career.studentcompanionai.rw/account.html" />
+
+  <meta name="theme-color" content="#1A1A1A" />
+  <link rel="manifest" href="site.webmanifest" />
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+  <link rel="apple-touch-icon" href="assets/logo.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="auth.css" />
+</head>
+<body>
+
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- ========== HEADER ========== -->
+  <header class="site-header" role="banner">
+    <div class="container header-inner">
+      <a href="index.html" class="brand" aria-label="SCA Opportunities home">
+        <img src="assets/logo.png" alt="" class="brand-mark" />
+        <div class="brand-text">
+          <span class="brand-name">SCA Opportunities</span>
+          <span class="brand-sub">by Student Companion AI</span>
+        </div>
+      </a>
+
+      <button class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="site-nav">
+        <span></span><span></span><span></span>
+      </button>
+
+      <nav class="site-nav" id="site-nav" aria-label="Primary">
+        <a href="index.html">Home</a>
+        <a href="opportunities.html">Opportunities</a>
+        <a href="sources.html">Sources</a>
+        <a href="about.html">About</a>
+        <a href="match.html">CV Checker</a>
+        <a href="login.html" id="nav-login">Log In</a>
+        <a href="account.html" id="nav-account" class="nav-active" aria-current="page" hidden>My Account</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content" role="main">
+    <section class="page-header">
+      <div class="container">
+        <div class="account-header">
+          <div class="account-header-main">
+            <div class="account-avatar" id="account-avatar">
+              <img id="avatar-img" alt="" hidden />
+              <span id="avatar-initials">—</span>
+            </div>
+            <div>
+              <h1 class="page-title">My Account</h1>
+              <p class="page-lead" id="account-welcome">Loading your profile…</p>
+            </div>
+          </div>
+          <div class="account-header-actions">
+            <button class="btn btn-ghost" id="btn-edit-profile">Edit Profile</button>
+            <button class="btn btn-ghost" id="btn-logout">Log Out</button>
+          </div>
+        </div>
+
+        <!-- ===== VIEW MODE: read-only summary ===== -->
+        <div class="account-profile" id="account-profile" hidden>
+          <div class="account-profile-item">
+            <span class="label">Region</span>
+            <span class="value" id="profile-region">—</span>
+          </div>
+          <div class="account-profile-item">
+            <span class="label">Country</span>
+            <span class="value" id="profile-country">—</span>
+          </div>
+          <div class="account-profile-item">
+            <span class="label">Year of study</span>
+            <span class="value" id="profile-year">—</span>
+          </div>
+          <div class="account-profile-item">
+            <span class="label">University</span>
+            <span class="value" id="profile-university">—</span>
+          </div>
+          <div class="account-profile-item">
+            <span class="label">Sex</span>
+            <span class="value" id="profile-sex">—</span>
+          </div>
+          <div class="account-profile-item">
+            <span class="label">Date of birth</span>
+            <span class="value" id="profile-dob">—</span>
+          </div>
+        </div>
+
+        <!-- ===== EDIT MODE: hidden until "Edit Profile" is clicked ===== -->
+        <section class="account-edit-section" id="edit-profile-section" hidden>
+          <h2 class="section-title">Edit profile</h2>
+          <p class="section-sub">Update your photo, sex and date of birth.</p>
+
+          <form id="form-edit-profile" class="edit-profile-form">
+            <div class="avatar-field">
+              <div class="account-avatar account-avatar--lg">
+                <img id="edit-avatar-img" alt="" hidden />
+                <span id="edit-avatar-initials">—</span>
+              </div>
+              <div>
+                <label for="profile-avatar-input" class="btn btn-ghost">Change photo</label>
+                <input type="file" id="profile-avatar-input" accept="image/png,image/jpeg,image/webp" hidden />
+                <p class="auth-hint">JPG, PNG or WEBP, up to 2MB.</p>
+              </div>
+            </div>
+
+            <div class="auth-row">
+              <div class="auth-field">
+                <label for="edit-sex">Sex</label>
+                <select id="edit-sex">
+                  <option value="">Prefer not to say</option>
+                  <option value="Female">Female</option>
+                  <option value="Male">Male</option>
+                </select>
+              </div>
+              <div class="auth-field">
+                <label for="edit-dob">Date of birth</label>
+                <input type="date" id="edit-dob" />
+              </div>
+            </div>
+
+            <div class="auth-error" id="edit-profile-error" role="alert"></div>
+            <div class="auth-success" id="edit-profile-success" role="status"></div>
+
+            <div class="edit-profile-actions">
+              <button type="submit" class="btn btn-primary" id="edit-profile-save">Save changes</button>
+              <button type="button" class="btn btn-ghost" id="edit-profile-cancel">Cancel</button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </section>
+
+    <section class="container" style="padding: var(--s-7) var(--s-4) var(--s-9);">
+      <h2 class="section-title">Saved opportunities</h2>
+      <p class="section-sub">Everything you've bookmarked, in one place.</p>
+
+      <div class="saved-empty" id="saved-empty" hidden>
+        <p>You haven't saved any opportunities yet.</p>
+        <a href="opportunities.html" class="btn btn-primary" style="margin-top: var(--s-4);">Browse Opportunities</a>
+      </div>
+
+      <div class="saved-grid" id="saved-grid"></div>
+    </section>
+  </main>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <img src="assets/logo.png" alt="" class="footer-mark" />
+        <div>
+          <p class="footer-name">SCA Opportunities</p>
+          <p class="footer-sub">A product of Student Companion AI</p>
+        </div>
+      </div>
+
+      <div class="footer-links">
+        <div>
+          <h4>Platform</h4>
+          <a href="index.html">Home</a>
+          <a href="opportunities.html">Opportunities</a>
+          <a href="sources.html">Sources</a>
+          <a href="about.html">About</a>
+          <a href="match.html">CV Checker</a>
+        </div>
+        <div>
+          <h4>Connect</h4>
+          <a href="mailto:studentcompanionai@gmail.com">Email us</a>
+          <a href="https://studentcompanionai.xyz" target="_blank" rel="noopener">Main site</a>
+          <a href="https://whatsapp.com/channel/0029VajtyR71SWt02iOsLK2l" target="_blank" rel="noopener">WhatsApp Channel</a>
+        </div>
+        <div>
+          <h4>Legal</h4>
+          <a href="privacy.html">Privacy</a>
+          <a href="terms.html">Terms</a>
+        </div>
+      </div>
+
+      <p class="footer-base">© <span id="year">2026</span> Student Companion AI. Opportunities that match your journey.</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/regions.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="script.js"></script>
+  <script src="js/account-page.js"></script>
+</body>
+</html>

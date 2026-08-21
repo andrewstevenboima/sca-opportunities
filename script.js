@@ -49,7 +49,9 @@ const statUpdated = $("#stat-updated");
 /* -------------------------------------------------------------
    Init
    ------------------------------------------------------------- */
-document.addEventListener("DOMContentLoaded", () => {
+let currentUserId = null;
+
+document.addEventListener("DOMContentLoaded", async () => {
   // Update footer year on all pages
   const yearEl = $("#year");
   if (yearEl) yearEl.textContent = new Date().getFullYear();
@@ -57,13 +59,50 @@ document.addEventListener("DOMContentLoaded", () => {
   // Wire mobile nav (all pages)
   wireMobileNav();
 
+  // Toggle "Log In" / "My Account" nav links (all pages)
+  wireAuthNav();
+
   // Only wire opportunities logic if this page has the grid
   if (document.getElementById("opp-grid")) {
+    await hydrateBookmarksFromAccount();
     wireEvents();
     applyURLParams();
     loadOpportunities();
   }
 });
+
+// Show "My Account" instead of "Log In" once a Supabase session exists
+function wireAuthNav() {
+  const loginLink = document.getElementById("nav-login");
+  const accountLink = document.getElementById("nav-account");
+  if (!loginLink && !accountLink) return;
+  if (!window.SCA || !window.SCA.ready) return; // Supabase not configured yet
+
+  const paint = (session) => {
+    const loggedIn = !!session;
+    if (loginLink) loginLink.hidden = loggedIn;
+    if (accountLink) accountLink.hidden = !loggedIn;
+  };
+
+  window.SCA.getSession().then(paint);
+  window.SCA.onAuthChange(paint);
+}
+
+// Pull a logged-in student's saved opportunities from Supabase so
+// their bookmark stars are correct on first render. Guests keep the
+// existing session-only (in-memory) bookmark behaviour.
+async function hydrateBookmarksFromAccount() {
+  if (!window.SCA || !window.SCA.ready) return;
+  const session = await window.SCA.getSession();
+  if (!session) return;
+  currentUserId = session.user.id;
+  try {
+    const bookmarks = await window.SCA.listBookmarks(currentUserId);
+    bookmarks.forEach((b) => state.bookmarks.add(b.opportunity_id));
+  } catch (err) {
+    console.warn("[SCA] Couldn't load saved opportunities:", err.message);
+  }
+}
 
 // Mobile hamburger toggle
 function wireMobileNav() {
@@ -194,12 +233,12 @@ const COUNTRY_REGISTRY = [
   { name: "Senegal",         flag: "\u{1F1F8}\u{1F1F3}", aliases: ["senegal","senegalese","dakar"] },
   { name: "Tanzania",        flag: "\u{1F1F9}\u{1F1FF}", aliases: ["tanzania","tanzanian","dar es salaam","zanzibar","dodoma"] },
   { name: "Cameroon",        flag: "\u{1F1E8}\u{1F1F2}", aliases: ["cameroon","cameroonian","yaound","douala"] },
-  { name: "C\u00F4te d'Ivoire", flag: "\u{1F1E8}\u{1F1EE}", aliases: ["ivoire","ivory coast","ivorian","abidjan"] },
+  { name: "Côte d'Ivoire", flag: "\u{1F1E8}\u{1F1EE}", aliases: ["ivoire","ivory coast","ivorian","abidjan"] },
   { name: "Liberia",         flag: "\u{1F1F1}\u{1F1F7}", aliases: ["liberia","liberian","monrovia"] },
   { name: "Zambia",          flag: "\u{1F1FF}\u{1F1F2}", aliases: ["zambia","zambian","lusaka"] },
   { name: "Zimbabwe",        flag: "\u{1F1FF}\u{1F1FC}", aliases: ["zimbabwe","zimbabwean","harare"] },
   { name: "Botswana",        flag: "\u{1F1E7}\u{1F1FC}", aliases: ["botswana","gaborone"] },
-  { name: "Togo",            flag: "\u{1F1F9}\u{1F1EC}", aliases: ["togo","togolese","lom\u00E9","lome"] },
+  { name: "Togo",            flag: "\u{1F1F9}\u{1F1EC}", aliases: ["togo","togolese","lomé","lome"] },
   { name: "Mauritius",       flag: "\u{1F1F2}\u{1F1FA}", aliases: ["mauritius","mauritian","port louis"] },
   { name: "Mozambique",      flag: "\u{1F1F2}\u{1F1FF}", aliases: ["mozambique","mozambican","maputo"] },
   { name: "Malawi",          flag: "\u{1F1F2}\u{1F1FC}", aliases: ["malawi","malawian","lilongwe","blantyre"] },
@@ -450,10 +489,12 @@ function detectMode(o) {
 
 function wireBookmarkButtons() {
   $$(".opp-bookmark").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
+    btn.addEventListener("click", async (e) => {
       e.preventDefault();
       const id = btn.dataset.id;
-      if (state.bookmarks.has(id)) {
+      const wasBookmarked = state.bookmarks.has(id);
+
+      if (wasBookmarked) {
         state.bookmarks.delete(id);
         btn.setAttribute("aria-pressed", "false");
         btn.textContent = "☆";
@@ -463,6 +504,20 @@ function wireBookmarkButtons() {
         btn.textContent = "★";
       }
       updateBookmarkChip();
+
+      // Guests keep session-only bookmarks (matches prior behaviour).
+      // Logged-in students get theirs persisted to Supabase.
+      if (!currentUserId) return;
+      try {
+        if (wasBookmarked) {
+          await window.SCA.removeBookmark(currentUserId, id);
+        } else {
+          const opportunity = state.all.find((o) => String(o.id || "") === id) || {};
+          await window.SCA.addBookmark(currentUserId, { id, ...opportunity });
+        }
+      } catch (err) {
+        console.warn("[SCA] Couldn't sync saved opportunity:", err.message);
+      }
     });
   });
 }
@@ -774,7 +829,7 @@ if (!document.getElementById("opp-grid") &&
 
     } catch (e) {
       document.querySelectorAll("[data-live-count]").forEach((el) => {
-        if (el.textContent === "\u2014") el.textContent = "80+";
+        if (el.textContent === "—") el.textContent = "80+";
       });
     }
   })();

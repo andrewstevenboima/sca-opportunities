@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Primary SEO -->
-  <title>About SCA Opportunities — A Curated Platform for African Students</title>
+  <title>About SCA Opportunities | A Curated Platform for African Students</title>
   <meta name="description" content="About SCA Opportunities: our mission, our story, how we curate, who we serve, and what we don't do. Free forever, zero paid listings, zero scams." />
   <meta name="keywords" content="African students opportunities, undergraduate internships Africa, fellowships Africa, scholarships African students, Rwanda internships, Kenya jobs, Nigeria fellowships, Ghana scholarships, Sierra Leone opportunities, ALU careers, Student Companion AI" />
   <meta name="author" content="Student Companion AI" />
@@ -13,7 +13,7 @@
   <link rel="canonical" href="https://career.studentcompanionai.rw/about.html" />
 
   <!-- Open Graph -->
-  <meta property="og:title" content="About SCA Opportunities — A Curated Platform for African Students" />
+  <meta property="og:title" content="About SCA Opportunities | A Curated Platform for African Students" />
   <meta property="og:description" content="About SCA Opportunities: our mission, our story, how we curate, who we serve, and what we don't do. Free forever, zero paid listings, zero scams." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://career.studentcompanionai.rw/about.html" />
@@ -25,7 +25,7 @@
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="About SCA Opportunities — A Curated Platform for African Students" />
+  <meta name="twitter:title" content="About SCA Opportunities | A Curated Platform for African Students" />
   <meta name="twitter:description" content="About SCA Opportunities: our mission, our story, how we curate, who we serve, and what we don't do. Free forever, zero paid listings, zero scams." />
   <meta name="twitter:image" content="https://career.studentcompanionai.rw/assets/hero-photo.jpg" />
 
@@ -114,9 +114,18 @@
         <a href="opportunities.html">Opportunities</a>
         <a href="sources.html">Sources</a>
         <a href="about.html" class="nav-active" aria-current="page">About</a>
-        <a href="community.html">Common Room</a>
-        <a href="students.html">Students</a>
-        <a href="messages.html">Messages<span class="nav-badge" id="nav-unread-badge" hidden></span></a>
+        <div class="nav-dropdown" id="nav-community-dropdown">
+          <button type="button" id="nav-dropdown-toggle" class="nav-dropdown-toggle" aria-haspopup="true" aria-expanded="false">
+            Community
+            <span class="nav-badge" id="nav-unread-badge" hidden></span>
+            <span class="nav-dropdown-arrow" aria-hidden="true">▾</span>
+          </button>
+          <div class="nav-dropdown-menu" id="nav-dropdown-menu">
+            <a href="community.html">Common Room</a>
+            <a href="students.html">Students</a>
+            <a href="messages.html">Messages</a>
+          </div>
+        </div>
         <a href="login.html" id="nav-login">Log In</a>
         <a href="account.html" id="nav-account" hidden>My Account</a>
         <a href="https://studentcompanionai.rw" target="_blank" rel="noopener" class="nav-cta">Main Site ↗</a>
@@ -142,7 +151,7 @@
 
       <div class="about-section">
         <h2>Our mission</h2>
-        <p>SCA Opportunities exists to help African undergraduate students and recent graduates find opportunities that actually match their level — without wading through spam, scams, or senior roles designed for people 10 years further along.</p>
+        <p>SCA Opportunities exists to help African undergraduate students and recent graduates find opportunities that actually match their level, without wading through spam, scams, or senior roles designed for people 10 years further along.</p>
         <p>We curate internships, jobs, fellowships, scholarships, and competitions from 50+ trusted sources across Africa and globally. Every listing is manually reviewed. Every eligibility caveat is flagged. Every deadline is verified.</p>
       </div>
 
@@ -150,20 +159,20 @@
         <h2>About the Founder</h2>
         <p><strong>Andrew Steven Boima</strong> is from Freetown, Sierra Leone, a small country in West Africa, and graduated from the African Leadership University in Kigali with First Class Honours in Entrepreneurial Leadership. He built SCA Opportunities as a project of <a href="https://studentcompanionai.rw" target="_blank" rel="noopener">Student Companion AI</a>, an ethics-first AI-powered student support platform registered in Rwanda.</p>
 
-        <p>At graduation in July 2026, he received the <strong>Africa's Opportunity Award</strong> — given to the graduate whose passion for the continent resonates across the ALU community and the <strong>Resident Genius Award</strong>, for depth of knowledge and consistently going the extra mile. This platform is what both of those look like in practice: a continent-wide search, done carefully, one verified listing at a time.</p>
+        <p>At graduation in July 2026, he received the <strong>Africa's Opportunity Award</strong>, given to the graduate whose passion for the continent resonates across the ALU community, and the <strong>Resident Genius Award</strong>, for depth of knowledge and consistently going the extra mile. This platform is what both of those look like in practice: a continent-wide search, done carefully, one verified listing at a time.</p>
 
-        <p>It grew from a personal need. Navigating scholarships, fellowships, and jobs across four years of university, Andrew kept hitting the same wall — most aggregators are built for 5-10 years of experience, not African undergraduates asking a simple question: <em>is this actually open to me?</em> So he built the platform he wished had existed. It launched in 2026 with verified opportunities and now hosts 30+ from 50+ curated sources, refreshed weekly.</p>
+        <p>It grew from a personal need. Navigating scholarships, fellowships, and jobs across four years of university, Andrew kept hitting the same wall: most aggregators are built for 5-10 years of experience, not African undergraduates asking a simple question: <em>is this actually open to me?</em> So he built the platform he wished had existed. It launched in 2026 with verified opportunities and now hosts 30+ from 50+ curated sources, refreshed weekly.</p>
       </div>
 
       <div class="about-section">
         <h2>How we curate</h2>
         <p>Every opportunity that makes it onto the platform passes a manual review checking:</p>
         <ul class="about-list">
-          <li><strong>Fit for African undergraduates</strong> — no work-rights walls, no impossible eligibility, no roles requiring 10 years of experience</li>
-          <li><strong>Verified sources</strong> — real organizations with real websites, not aggregator repostings of stale content</li>
-          <li><strong>Honest eligibility flags</strong> — if a role has language requirements, geographic locks, seniority floors, or hidden costs, we surface them prominently</li>
-          <li><strong>Fresh deadlines</strong> — expired listings are archived, not left on the platform to erode trust</li>
-          <li><strong>Zero scams</strong> — we've caught and filtered out fake UN offers, credential-harvesting "data entry" listings, and paid-to-apply scholarship traps</li>
+          <li><strong>Fit for African undergraduates</strong>: no work-rights walls, no impossible eligibility, no roles requiring 10 years of experience</li>
+          <li><strong>Verified sources</strong>: real organizations with real websites, not aggregator repostings of stale content</li>
+          <li><strong>Honest eligibility flags</strong>: if a role has language requirements, geographic locks, seniority floors, or hidden costs, we surface them prominently</li>
+          <li><strong>Fresh deadlines</strong>: expired listings are archived, not left on the platform to erode trust</li>
+          <li><strong>Zero scams</strong>: we've caught and filtered out fake UN offers, credential-harvesting "data entry" listings, and paid-to-apply scholarship traps</li>
         </ul>
       </div>
 
@@ -171,13 +180,13 @@
         <h2>Who we serve</h2>
         <p>Our audience is <strong>African undergraduate students and recent graduates with 0–2 years of professional experience</strong>. We serve students at:</p>
         <ul class="about-list">
-          <li>African Leadership University (ALU) — Rwanda and Mauritius</li>
-          <li>Fourah Bay College (FBC), Njala University — Sierra Leone</li>
-          <li>Ashesi University — Ghana</li>
-          <li>Strathmore, USIU-Africa, Kenyatta University — Kenya</li>
+          <li>African Leadership University (ALU), Rwanda and Mauritius</li>
+          <li>Fourah Bay College (FBC), Njala University, Sierra Leone</li>
+          <li>Ashesi University, Ghana</li>
+          <li>Strathmore, USIU-Africa, Kenyatta University, Kenya</li>
           <li>Universities across Nigeria, Uganda, Egypt, South Africa, Morocco, and 15+ other African countries</li>
         </ul>
-        <p>Roles that require senior experience, master's degrees, work authorization in the US/UK/EU/Australia, or specific language proficiency beyond English get filtered off the platform — not because they're bad roles, but because they're not for our audience.</p>
+        <p>Roles that require senior experience, master's degrees, work authorization in the US/UK/EU/Australia, or specific language proficiency beyond English get filtered off the platform, not because they're bad roles, but because they're not for our audience.</p>
       </div>
 
       <div class="about-section">
@@ -186,7 +195,7 @@
           <li><strong>We don't charge students.</strong> The platform is free forever. No paywall, no premium tier, no data harvesting.</li>
           <li><strong>We don't accept paid listings.</strong> Every listing is curated on merit. Organizations can suggest their opportunities but they get the same review as everything else.</li>
           <li><strong>We don't send spam.</strong> If you subscribe to our weekly digest, that's the only email you'll ever get from us.</li>
-          <li><strong>We don't compete with your school's career office.</strong> We complement them by covering opportunities they may not surface — pan-African fellowships, remote UN roles, cross-country scholarships.</li>
+          <li><strong>We don't compete with your school's career office.</strong> We complement them by covering opportunities they may not surface: pan-African fellowships, remote UN roles, cross-country scholarships.</li>
         </ul>
       </div>
 

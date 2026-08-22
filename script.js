@@ -59,8 +59,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Wire mobile nav (all pages)
   wireMobileNav();
 
+  // Wire the "Community" nav dropdown (all pages)
+  wireNavDropdown();
+
   // Toggle "Log In" / "My Account" nav links (all pages)
   wireAuthNav();
+
+  // Confirmation-link redirects can land on any page depending on the
+  // Supabase project's configured Site URL, so this check (and the
+  // flag it reads) has to run globally rather than on one page.
+  if (window.SCA && window.SCA.justConfirmedEmail) {
+    showToast("Email confirmed. You're all set, welcome to SCA Opportunities.");
+    history.replaceState(null, "", window.location.pathname);
+  }
 
   // Only wire opportunities logic if this page has the grid
   if (document.getElementById("opp-grid")) {
@@ -136,6 +147,59 @@ async function hydrateBookmarksFromAccount() {
   } catch (err) {
     console.warn("[SCA] Couldn't load saved opportunities:", err.message);
   }
+}
+
+// Self-contained (inline-styled) so it renders correctly on any page
+// regardless of which stylesheets that page happens to load.
+function showToast(message) {
+  const toast = document.createElement("div");
+  toast.textContent = message;
+  toast.setAttribute("role", "status");
+  Object.assign(toast.style, {
+    position: "fixed",
+    bottom: "24px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    background: "#1A1A1A",
+    color: "#FDFBF5",
+    padding: "0.875rem 1.5rem",
+    borderRadius: "999px",
+    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+    fontSize: "0.9375rem",
+    boxShadow: "0 12px 30px -12px rgba(0,0,0,0.4)",
+    zIndex: "1000",
+    maxWidth: "90vw",
+    textAlign: "center",
+  });
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 6000);
+}
+
+// "Community" nav dropdown (Common Room / Students / Messages)
+function wireNavDropdown() {
+  const dropdown = document.getElementById("nav-community-dropdown");
+  const toggle = document.getElementById("nav-dropdown-toggle");
+  if (!dropdown || !toggle) return;
+
+  toggle.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const isOpen = dropdown.classList.toggle("is-open");
+    toggle.setAttribute("aria-expanded", String(isOpen));
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!dropdown.contains(e.target)) {
+      dropdown.classList.remove("is-open");
+      toggle.setAttribute("aria-expanded", "false");
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      dropdown.classList.remove("is-open");
+      toggle.setAttribute("aria-expanded", "false");
+    }
+  });
 }
 
 // Mobile hamburger toggle

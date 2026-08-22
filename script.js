@@ -205,6 +205,58 @@ function wireNavDropdown() {
   });
 }
 
+// Share menu — used for profiles, posts, and comments. Tries the
+// device's native share sheet first (WhatsApp, Messages, etc. all
+// show up there automatically on mobile); falls back to a small
+// custom menu with direct platform links + copy-link on browsers
+// that don't support navigator.share (most desktop browsers).
+function shareContent(trigger, { url, text }) {
+  if (navigator.share) {
+    navigator.share({ text, url }).catch(() => {});
+    return;
+  }
+
+  document.querySelectorAll(".share-menu").forEach((el) => el.remove());
+
+  const menu = document.createElement("div");
+  menu.className = "share-menu";
+  const links = [
+    { label: "WhatsApp", href: `https://wa.me/?text=${encodeURIComponent(text + " " + url)}` },
+    { label: "X (Twitter)", href: `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}` },
+    { label: "Facebook", href: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}` },
+    { label: "LinkedIn", href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}` },
+  ];
+  menu.innerHTML =
+    links.map((l) => `<a href="${l.href}" target="_blank" rel="noopener">${l.label}</a>`).join("") +
+    `<button type="button" class="share-menu-copy">Copy link</button>`;
+
+  document.body.appendChild(menu);
+  const rect = trigger.getBoundingClientRect();
+  menu.style.top = `${rect.bottom + 6}px`;
+  menu.style.left = `${Math.min(rect.left, window.innerWidth - 200)}px`;
+
+  menu.querySelector(".share-menu-copy").addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      showToast("Link copied.");
+    } catch (err) {
+      showToast("Couldn't copy the link.");
+    }
+    menu.remove();
+  });
+
+  menu.querySelectorAll("a").forEach((a) => a.addEventListener("click", () => menu.remove()));
+
+  setTimeout(() => {
+    document.addEventListener("click", function onDocClick(e) {
+      if (!menu.contains(e.target) && e.target !== trigger) {
+        menu.remove();
+        document.removeEventListener("click", onDocClick);
+      }
+    });
+  }, 0);
+}
+
 // Notification bell — @mentions from the Common Room. Runs on every
 // page since a mention can happen while the recipient is anywhere
 // on the site, not just on community.html.
@@ -356,12 +408,40 @@ function wireNotifications() {
 function wireMobileNav() {
   const toggle = document.getElementById("nav-toggle");
   const nav = document.getElementById("site-nav");
+  const backdrop = document.getElementById("nav-backdrop");
+  const closeBtn = document.getElementById("nav-drawer-close");
   if (!toggle || !nav) return;
+
+  function openDrawer() {
+    nav.classList.add("is-open");
+    toggle.setAttribute("aria-expanded", "true");
+    if (backdrop) backdrop.classList.add("is-open");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeDrawer() {
+    nav.classList.remove("is-open");
+    toggle.setAttribute("aria-expanded", "false");
+    if (backdrop) backdrop.classList.remove("is-open");
+    document.body.style.overflow = "";
+  }
+
   toggle.addEventListener("click", () => {
-    const expanded = toggle.getAttribute("aria-expanded") === "true";
-    toggle.setAttribute("aria-expanded", !expanded);
-    nav.classList.toggle("is-open");
+    if (nav.classList.contains("is-open")) closeDrawer();
+    else openDrawer();
   });
+
+  if (backdrop) backdrop.addEventListener("click", closeDrawer);
+  if (closeBtn) closeBtn.addEventListener("click", closeDrawer);
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeDrawer();
+  });
+
+  // Closing on link click matters here since the drawer is a fixed
+  // overlay now, not an inline panel — without this it would still
+  // be sitting open (mid-transition) during the page navigation.
+  nav.querySelectorAll("a").forEach((a) => a.addEventListener("click", closeDrawer));
 }
 
 // Apply ?filter=X or ?country=X from URL on page load

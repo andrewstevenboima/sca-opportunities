@@ -189,6 +189,7 @@
 }
 
 .post-toggle-comments,
+.post-share,
 .post-delete {
   background: none;
   border: none;
@@ -197,13 +198,30 @@
   font-size: 0.8125rem;
 }
 
-.post-toggle-comments {
+.post-toggle-comments,
+.post-share {
   color: var(--ink-mute);
   font-weight: 600;
 }
 
 .post-delete {
   color: var(--red);
+}
+
+.comment-share {
+  display: block;
+  margin-top: var(--s-1);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.75rem;
+  color: var(--ink-mute);
+  font-weight: 600;
+}
+
+.comment-share:hover {
+  color: var(--gold);
 }
 
 .post-comments {

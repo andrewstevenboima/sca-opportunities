@@ -90,6 +90,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const isSelf = memberId === currentUser.id;
   const companionBtn = document.getElementById("btn-companion");
   const selfNote = document.getElementById("member-self-note");
+  const messageBtn = document.getElementById("btn-message");
+  const messageHint = document.getElementById("member-message-hint");
 
   async function refreshCounts() {
     const [companions, companioning] = await Promise.all([
@@ -98,6 +100,25 @@ document.addEventListener("DOMContentLoaded", async () => {
     ]);
     document.getElementById("stat-companions").textContent = companions.length;
     document.getElementById("stat-companioning").textContent = companioning.length;
+  }
+
+  async function refreshMessageAccess(currentIsCompanion) {
+    // Messaging unlocks once a Companion relationship exists in
+    // EITHER direction — matches the messages_insert_companions
+    // policy in schema.sql, so the button never promises something
+    // sending would then reject.
+    let theyCompanionMe = false;
+    try {
+      theyCompanionMe = await window.SCA.isCompanion(memberId, currentUser.id);
+    } catch (err) {
+      theyCompanionMe = false;
+    }
+    const canMessage = currentIsCompanion || theyCompanionMe;
+    if (messageBtn) {
+      messageBtn.hidden = !canMessage;
+      if (canMessage) messageBtn.href = `messages.html?with=${encodeURIComponent(memberId)}`;
+    }
+    if (messageHint) messageHint.hidden = canMessage;
   }
 
   if (isSelf) {
@@ -117,6 +138,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       companionBtn.classList.toggle("btn-ghost", isCompanion);
     }
     paintButton();
+    await refreshMessageAccess(isCompanion);
 
     companionBtn.addEventListener("click", async () => {
       companionBtn.disabled = true;
@@ -129,6 +151,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         isCompanion = !isCompanion;
         paintButton();
         await refreshCounts();
+        await refreshMessageAccess(isCompanion);
       } catch (err) {
         alert(err.message || "Couldn't update that.");
       } finally {

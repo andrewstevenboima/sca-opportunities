@@ -94,6 +94,15 @@
   <!-- Skip to content for accessibility -->
   <a href="#main-content" class="skip-link">Skip to main content</a>
 
+  <!-- ========== ANNOUNCEMENT BAR ========== -->
+  <div class="announcement-bar" id="announcement-bar" hidden>
+    <div class="container announcement-inner">
+      <span class="announcement-icon" aria-hidden="true">💬</span>
+      <a href="#" id="announcement-link" class="announcement-text">New in the Common Room</a>
+      <button type="button" class="announcement-close" id="announcement-close" aria-label="Dismiss">✕</button>
+    </div>
+  </div>
+
   <!-- ========== HEADER ========== -->
   <header class="site-header" role="banner">
     <div class="nav-backdrop" id="nav-backdrop"></div>
@@ -181,6 +190,17 @@
     </div>
   </section>
 
+  <!-- ========== LIVE OPPORTUNITIES PREVIEW ========== -->
+  <section class="home-preview reveal" id="home-preview" hidden>
+    <div class="container">
+      <div class="home-preview-head">
+        <h2 class="section-title">Live right now</h2>
+        <a href="opportunities.html" class="home-preview-link">See all opportunities →</a>
+      </div>
+      <div class="home-preview-grid" id="home-preview-grid"></div>
+    </div>
+  </section>
+
 <!-- ========== HOME QUICK START ========== -->
   <section id="quick-start" class="quick-start">
     <div class="container">
@@ -188,19 +208,19 @@
       <p class="section-sub">Jump straight into the category that matches your journey.</p>
 
       <div class="quick-grid">
-        <a href="opportunities.html?filter=Internships" class="quick-card">
+        <a href="opportunities.html?filter=Internships" class="quick-card reveal">
           <span class="quick-num">01</span>
           <h3>I'm looking for an internship</h3>
           <p>Summer, part-time, remote, or virtual placements for Year 1–4 students.</p>
           <span class="quick-arrow">→</span>
         </a>
-        <a href="opportunities.html?filter=Scholarships" class="quick-card">
+        <a href="opportunities.html?filter=Scholarships" class="quick-card reveal">
           <span class="quick-num">02</span>
           <h3>I want to study abroad</h3>
           <p>Fully funded scholarships and exchanges, many with no IELTS required.</p>
           <span class="quick-arrow">→</span>
         </a>
-        <a href="opportunities.html?filter=Fellowships" class="quick-card">
+        <a href="opportunities.html?filter=Fellowships" class="quick-card reveal">
           <span class="quick-num">03</span>
           <h3>I want a fellowship</h3>
           <p>Leadership programs, youth fellowships, and career pipelines open to undergrads.</p>
@@ -215,22 +235,22 @@
     <div class="container">
       <h2 class="section-title">Why students trust SCA Opportunities</h2>
       <div class="values-grid">
-        <div class="value-card">
+        <div class="value-card reveal">
           <div class="value-icon">✓</div>
           <h3>Verified opportunities only</h3>
           <p>Every listing is manually reviewed for legitimacy. No scams, no dead links, no roles that don't fit our audience.</p>
         </div>
-        <div class="value-card">
+        <div class="value-card reveal">
           <div class="value-icon">🌍</div>
           <h3>Built for African students</h3>
           <p>Curated for undergraduates and recent grads across ALU, Fourah Bay, Ashesi, USIU, and 20+ African universities.</p>
         </div>
-        <div class="value-card">
+        <div class="value-card reveal">
           <div class="value-icon">🔄</div>
           <h3>Refreshed weekly</h3>
           <p>New opportunities added every Sunday. Expired listings archived. Deadlines flagged prominently.</p>
         </div>
-        <div class="value-card">
+        <div class="value-card reveal">
           <div class="value-icon">💛</div>
           <h3>Free forever</h3>
           <p>No paywall, no signup required, no data collection. Built as a public good for the pan-African student community.</p>

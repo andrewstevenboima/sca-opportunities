@@ -19,6 +19,7 @@
 
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="auth.css" />
+  <link rel="stylesheet" href="community.css" />
 </head>
 <body>
 
@@ -45,6 +46,7 @@
         <a href="sources.html">Sources</a>
         <a href="about.html">About</a>
         <a href="match.html">CV Checker</a>
+        <a href="community.html">Common Room</a>
         <a href="login.html" id="nav-login">Log In</a>
         <a href="account.html" id="nav-account" class="nav-active" aria-current="page" hidden>My Account</a>
       </nav>
@@ -69,6 +71,17 @@
             <button class="btn btn-ghost" id="btn-edit-profile">Edit Profile</button>
             <button class="btn btn-ghost" id="btn-logout">Log Out</button>
           </div>
+        </div>
+
+        <div class="companion-stats">
+          <a class="companion-stat" id="link-companions" href="#">
+            <strong id="stat-companions">0</strong>
+            <span>Companions</span>
+          </a>
+          <a class="companion-stat" id="link-companioning" href="#">
+            <strong id="stat-companioning">0</strong>
+            <span>Companioning</span>
+          </a>
         </div>
 
         <!-- ===== VIEW MODE: read-only summary ===== -->
@@ -188,6 +201,13 @@
       </div>
 
       <div class="saved-grid" id="saved-grid"></div>
+    </section>
+
+    <section class="container" id="recommended-section" style="padding: 0 var(--s-4) var(--s-9);" hidden>
+      <h2 class="section-title">Recommended for you</h2>
+      <p class="section-sub" id="recommended-sub">Opportunities open to students in your country.</p>
+
+      <div class="saved-grid" id="recommended-grid"></div>
     </section>
   </main>
 

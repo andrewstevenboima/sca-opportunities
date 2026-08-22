@@ -65,11 +65,34 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Only wire opportunities logic if this page has the grid
   if (document.getElementById("opp-grid")) {
     await hydrateBookmarksFromAccount();
+    await applyProfileCountryDefault();
     wireEvents();
     applyURLParams();
     loadOpportunities();
   }
 });
+
+// Default the country filter to a logged-in student's own profile
+// country, so they land on opportunities near them — never a hard
+// restriction, just a starting point they can clear with one click.
+// An explicit ?country= URL param (applied right after this, in
+// applyURLParams) always wins over this default.
+async function applyProfileCountryDefault() {
+  if (!currentUserId) return;
+  try {
+    const profile = await window.SCA.getProfile(currentUserId);
+    if (!profile?.country) return;
+    state.country = profile.country;
+    const pillWrap = document.getElementById("country-pill-wrap");
+    const pillName = document.getElementById("country-pill-name");
+    if (pillWrap && pillName) {
+      pillName.textContent = profile.country;
+      pillWrap.hidden = false;
+    }
+  } catch (err) {
+    // Not fatal — just skip the default if the profile fetch fails.
+  }
+}
 
 // Show "My Account" instead of "Log In" once a Supabase session exists
 function wireAuthNav() {

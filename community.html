@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>The Common Room — SCA Opportunities</title>
+  <meta name="description" content="Discuss opportunities, ask questions, and connect with other students in The Common Room." />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="canonical" href="https://career.studentcompanionai.rw/community.html" />
+
+  <meta name="theme-color" content="#1A1A1A" />
+  <link rel="manifest" href="site.webmanifest" />
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+  <link rel="apple-touch-icon" href="assets/logo.png" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="auth.css" />
+  <link rel="stylesheet" href="community.css" />
+</head>
+<body>
+
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- ========== HEADER ========== -->
+  <header class="site-header" role="banner">
+    <div class="container header-inner">
+      <a href="index.html" class="brand" aria-label="SCA Opportunities home">
+        <img src="assets/logo.png" alt="" class="brand-mark" />
+        <div class="brand-text">
+          <span class="brand-name">SCA Opportunities</span>
+          <span class="brand-sub">by Student Companion AI</span>
+        </div>
+      </a>
+
+      <button class="nav-toggle" id="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="site-nav">
+        <span></span><span></span><span></span>
+      </button>
+
+      <nav class="site-nav" id="site-nav" aria-label="Primary">
+        <a href="index.html">Home</a>
+        <a href="opportunities.html">Opportunities</a>
+        <a href="sources.html">Sources</a>
+        <a href="about.html">About</a>
+        <a href="match.html">CV Checker</a>
+        <a href="community.html" class="nav-active" aria-current="page">Common Room</a>
+        <a href="login.html" id="nav-login">Log In</a>
+        <a href="account.html" id="nav-account" hidden>My Account</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content" role="main">
+    <section class="page-header">
+      <div class="container">
+        <h1 class="page-title">The Common Room</h1>
+        <p class="page-lead">Ask questions, share what you've learned, and connect with other students in the SCA community.</p>
+      </div>
+    </section>
+
+    <!-- ===== Signed-out gate ===== -->
+    <section class="container" id="community-signed-out" hidden style="padding: var(--s-4) var(--s-4) var(--s-9);">
+      <div class="saved-empty">
+        <p>The Common Room is open to students with a free account.</p>
+        <a href="login.html" class="btn btn-primary" style="margin-top: var(--s-4);">Log In / Sign Up</a>
+      </div>
+    </section>
+
+    <!-- ===== Signed-in view ===== -->
+    <section class="container" id="community-signed-in" hidden style="padding: var(--s-4) var(--s-4) var(--s-9);">
+
+      <form id="form-new-post" class="new-post-card">
+        <h2 class="section-title">Start a discussion</h2>
+        <div class="auth-field">
+          <label for="post-title">Title</label>
+          <input type="text" id="post-title" maxlength="150" required placeholder="What's on your mind?" />
+        </div>
+        <div class="auth-field">
+          <label for="post-body">Details</label>
+          <textarea id="post-body" rows="3" maxlength="5000" required placeholder="Share the details…"></textarea>
+        </div>
+        <div class="auth-error" id="new-post-error" role="alert"></div>
+        <button type="submit" class="btn btn-primary" id="new-post-submit">Post to the Common Room</button>
+      </form>
+
+      <div class="posts-list" id="posts-list"></div>
+      <p class="posts-empty" id="posts-empty" hidden>No discussions yet — be the first to start one.</p>
+    </section>
+  </main>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <img src="assets/logo.png" alt="" class="footer-mark" />
+        <div>
+          <p class="footer-name">SCA Opportunities</p>
+          <p class="footer-sub">A product of Student Companion AI</p>
+        </div>
+      </div>
+
+      <div class="footer-links">
+        <div>
+          <h4>Platform</h4>
+          <a href="index.html">Home</a>
+          <a href="opportunities.html">Opportunities</a>
+          <a href="sources.html">Sources</a>
+          <a href="about.html">About</a>
+          <a href="match.html">CV Checker</a>
+        </div>
+        <div>
+          <h4>Connect</h4>
+          <a href="mailto:studentcompanionai@gmail.com">Email us</a>
+          <a href="https://studentcompanionai.xyz" target="_blank" rel="noopener">Main site</a>
+          <a href="https://whatsapp.com/channel/0029VajtyR71SWt02iOsLK2l" target="_blank" rel="noopener">WhatsApp Channel</a>
+        </div>
+        <div>
+          <h4>Legal</h4>
+          <a href="privacy.html">Privacy</a>
+          <a href="terms.html">Terms</a>
+        </div>
+      </div>
+
+      <p class="footer-base">© <span id="year">2026</span> Student Companion AI. Opportunities that match your journey.</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="js/regions.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="script.js"></script>
+  <script src="js/community.js"></script>
+</body>
+</html>

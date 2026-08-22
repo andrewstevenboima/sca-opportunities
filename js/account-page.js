@@ -163,6 +163,72 @@ document.addEventListener("DOMContentLoaded", async () => {
     setAvatar(null, user.email);
   }
 
+  const linkCompanions = document.getElementById("link-companions");
+  const linkCompanioning = document.getElementById("link-companioning");
+  if (linkCompanions) linkCompanions.href = `member.html?id=${encodeURIComponent(user.id)}`;
+  if (linkCompanioning) linkCompanioning.href = `member.html?id=${encodeURIComponent(user.id)}`;
+  try {
+    const [companions, companioning] = await Promise.all([
+      window.SCA.listCompanions(user.id),
+      window.SCA.listCompanioning(user.id),
+    ]);
+    document.getElementById("stat-companions").textContent = companions.length;
+    document.getElementById("stat-companioning").textContent = companioning.length;
+  } catch (err) {
+    // Non-fatal — leave the counts at their default of 0.
+  }
+
+  // "Recommended for you" — opportunities tagged with the student's own
+  // country, reusing the country-matching engine already loaded by
+  // script.js on this page (APPS_SCRIPT_URL, FALLBACK_JSON, countriesFor).
+  (async () => {
+    if (!currentProfile?.country || typeof countriesFor !== "function") return;
+    const recommendedSection = document.getElementById("recommended-section");
+    const recommendedGrid = document.getElementById("recommended-grid");
+    const recommendedSub = document.getElementById("recommended-sub");
+    if (!recommendedSection || !recommendedGrid) return;
+
+    try {
+      let data;
+      const url = typeof APPS_SCRIPT_URL !== "undefined" && APPS_SCRIPT_URL && !APPS_SCRIPT_URL.startsWith("REPLACE_")
+        ? `${APPS_SCRIPT_URL}?action=opportunities`
+        : "opportunities.json";
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        data = await res.json();
+      } catch (fetchErr) {
+        const res = await fetch("opportunities.json");
+        data = await res.json();
+      }
+
+      const list = (Array.isArray(data) ? data : data.opportunities || []).filter(
+        (o) => (o.status || "live").toLowerCase() === "live"
+      );
+      const matches = list.filter((o) => countriesFor(o).includes(currentProfile.country)).slice(0, 6);
+
+      if (!matches.length) return;
+
+      recommendedSub.textContent = `${matches.length} opportunit${matches.length === 1 ? "y" : "ies"} open to students in ${currentProfile.country}.`;
+      recommendedGrid.innerHTML = matches
+        .map(
+          (o, i) => `
+        <article class="saved-card" data-opportunity-id="${escapeAttr(o.id || i)}">
+          <h3>${escapeHTML(o.title || "Untitled")}</h3>
+          ${o.organization ? `<p>${escapeHTML(o.organization)}${o.location ? ` · ${escapeHTML(o.location)}` : ""}</p>` : ""}
+          <div class="saved-card-actions">
+            <a href="${escapeAttr(o.apply_link || "opportunities.html")}" target="_blank" rel="noopener" class="opp-apply">Apply →</a>
+          </div>
+        </article>
+      `
+        )
+        .join("");
+      recommendedSection.hidden = false;
+    } catch (err) {
+      // Non-fatal — recommendations are a bonus, not core functionality.
+    }
+  })();
+
   if (editAvatarInput) {
     editAvatarInput.addEventListener("change", () => {
       const file = editAvatarInput.files[0];

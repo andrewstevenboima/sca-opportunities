@@ -108,6 +108,74 @@
   word-break: break-word;
 }
 
+.mention-link {
+  font-weight: 600;
+}
+
+.mention-all {
+  background: var(--gold-wash);
+  padding: 0.1em 0.4em;
+  border-radius: var(--radius-sm);
+}
+
+.mention-option-all .mention-all-icon span {
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.post-card.post-highlight {
+  animation: post-highlight-flash 2s ease;
+}
+
+@keyframes post-highlight-flash {
+  0% { background: var(--gold-wash); }
+  100% { background: var(--white); }
+}
+
+/* -------------------------------------------------------------
+   @mention autocomplete
+   ------------------------------------------------------------- */
+.mention-menu {
+  position: fixed;
+  z-index: 500;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 12px 30px -12px rgba(26, 26, 26, 0.2);
+  max-height: 220px;
+  overflow-y: auto;
+  min-width: 200px;
+}
+
+.mention-option {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--ink);
+}
+
+.mention-option:hover,
+.mention-option.is-active {
+  background: var(--cream);
+}
+
+.mention-option .account-avatar--sm {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.mention-option .account-avatar--sm span {
+  font-size: 0.625rem;
+}
+
 .post-actions {
   display: flex;
   align-items: center;

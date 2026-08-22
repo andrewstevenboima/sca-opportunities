@@ -128,6 +128,20 @@
         </div>
         <a href="login.html" id="nav-login">Log In</a>
         <a href="account.html" id="nav-account" hidden>My Account</a>
+        <div class="notif-bell" id="notif-bell" hidden>
+          <button type="button" id="notif-bell-toggle" class="notif-bell-toggle" aria-haspopup="true" aria-expanded="false" aria-label="Notifications">
+            <span aria-hidden="true">🔔</span>
+            <span class="nav-badge" id="notif-unread-badge" hidden></span>
+          </button>
+          <div class="notif-panel" id="notif-panel">
+            <div class="notif-panel-head">
+              <h3>Notifications</h3>
+              <button type="button" id="notif-mark-all-read" class="notif-mark-all">Mark all read</button>
+            </div>
+            <div class="notif-list" id="notif-list"></div>
+            <p class="notif-empty" id="notif-empty" hidden>No notifications yet.</p>
+          </div>
+        </div>
         <a href="https://studentcompanionai.rw" target="_blank" rel="noopener" class="nav-cta">Main Site ↗</a>
       </nav>
     </div>

@@ -297,6 +297,83 @@ const SCA = {
     const { error } = await sb.from("discussion_comments").delete().eq("id", commentId);
     if (error) throw error;
   },
+
+  // ---- Private messages (Companions only — see schema.sql) ----
+
+  async listConversations(userId) {
+    // One row per thread — everyone userId has exchanged a message
+    // with, most recent message first. Grouped client-side since
+    // this is a small, per-user result set (no need for a DB view).
+    if (!sb) return [];
+    const { data, error } = await sb
+      .from("messages")
+      .select("*")
+      .or(`sender_id.eq.${userId},recipient_id.eq.${userId}`)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+
+    const byPartner = new Map();
+    for (const msg of data) {
+      const partnerId = msg.sender_id === userId ? msg.recipient_id : msg.sender_id;
+      if (!byPartner.has(partnerId)) {
+        byPartner.set(partnerId, {
+          partnerId,
+          lastMessage: msg,
+          unreadCount: 0,
+        });
+      }
+      if (msg.recipient_id === userId && !msg.read_at) {
+        byPartner.get(partnerId).unreadCount += 1;
+      }
+    }
+    return Array.from(byPartner.values());
+  },
+
+  async listMessages(userId, partnerId) {
+    if (!sb) return [];
+    const { data, error } = await sb
+      .from("messages")
+      .select("*")
+      .or(
+        `and(sender_id.eq.${userId},recipient_id.eq.${partnerId}),and(sender_id.eq.${partnerId},recipient_id.eq.${userId})`
+      )
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+    return data;
+  },
+
+  async sendMessage(senderId, recipientId, body) {
+    if (!sb) throw new Error("Supabase is not configured yet.");
+    const { data, error } = await sb
+      .from("messages")
+      .insert({ sender_id: senderId, recipient_id: recipientId, body })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async markThreadRead(userId, partnerId) {
+    if (!sb) return;
+    const { error } = await sb
+      .from("messages")
+      .update({ read_at: new Date().toISOString() })
+      .eq("recipient_id", userId)
+      .eq("sender_id", partnerId)
+      .is("read_at", null);
+    if (error) throw error;
+  },
+
+  async unreadMessageCount(userId) {
+    if (!sb) return 0;
+    const { count, error } = await sb
+      .from("messages")
+      .select("id", { count: "exact", head: true })
+      .eq("recipient_id", userId)
+      .is("read_at", null);
+    if (error) throw error;
+    return count || 0;
+  },
 };
 
 if (typeof window !== "undefined") window.SCA = SCA;

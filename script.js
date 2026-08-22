@@ -98,6 +98,7 @@ async function applyProfileCountryDefault() {
 function wireAuthNav() {
   const loginLink = document.getElementById("nav-login");
   const accountLink = document.getElementById("nav-account");
+  const unreadBadge = document.getElementById("nav-unread-badge");
   if (!loginLink && !accountLink) return;
   if (!window.SCA || !window.SCA.ready) return; // Supabase not configured yet
 
@@ -105,6 +106,16 @@ function wireAuthNav() {
     const loggedIn = !!session;
     if (loginLink) loginLink.hidden = loggedIn;
     if (accountLink) accountLink.hidden = !loggedIn;
+    if (unreadBadge && loggedIn) {
+      window.SCA.unreadMessageCount(session.user.id)
+        .then((count) => {
+          unreadBadge.hidden = !count;
+          unreadBadge.textContent = count > 9 ? "9+" : String(count);
+        })
+        .catch(() => {});
+    } else if (unreadBadge) {
+      unreadBadge.hidden = true;
+    }
   };
 
   window.SCA.getSession().then(paint);

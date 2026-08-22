@@ -225,3 +225,46 @@ create policy "discussion_comments_delete_own" on public.discussion_comments
   for delete using (auth.uid() = user_id);
 
 create index if not exists discussion_comments_post_id_idx on public.discussion_comments (post_id);
+
+-- ---------------------------------------------------------------
+-- messages: private direct messages between Companions only.
+-- A student can message another student only once a Companion
+-- relationship exists between them in EITHER direction (you
+-- companion them, or they companion you) — enforced by the insert
+-- policy below, not just the UI, since RLS is the real gatekeeper.
+-- Once a thread exists, either side can keep replying even if the
+-- original companion relationship is later removed.
+-- ---------------------------------------------------------------
+create table if not exists public.messages (
+  id uuid primary key default gen_random_uuid(),
+  sender_id uuid not null references auth.users (id) on delete cascade,
+  recipient_id uuid not null references auth.users (id) on delete cascade,
+  body text not null check (char_length(body) between 1 and 2000),
+  created_at timestamptz not null default now(),
+  read_at timestamptz,
+  check (sender_id <> recipient_id)
+);
+
+alter table public.messages enable row level security;
+
+drop policy if exists "messages_select_own" on public.messages;
+create policy "messages_select_own" on public.messages
+  for select using (auth.uid() = sender_id or auth.uid() = recipient_id);
+
+drop policy if exists "messages_insert_companions" on public.messages;
+create policy "messages_insert_companions" on public.messages
+  for insert with check (
+    auth.uid() = sender_id
+    and exists (
+      select 1 from public.companions c
+      where (c.companion_id = auth.uid() and c.companioned_id = recipient_id)
+         or (c.companion_id = recipient_id and c.companioned_id = auth.uid())
+    )
+  );
+
+drop policy if exists "messages_update_mark_read" on public.messages;
+create policy "messages_update_mark_read" on public.messages
+  for update using (auth.uid() = recipient_id) with check (auth.uid() = recipient_id);
+
+create index if not exists messages_sender_recipient_idx on public.messages (sender_id, recipient_id, created_at);
+create index if not exists messages_recipient_sender_idx on public.messages (recipient_id, sender_id, created_at);

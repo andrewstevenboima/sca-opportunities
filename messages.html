@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Member — SCA Opportunities</title>
+  <title>Messages — SCA Opportunities</title>
   <meta name="robots" content="noindex, nofollow" />
-  <link rel="canonical" href="https://career.studentcompanionai.rw/member.html" />
+  <link rel="canonical" href="https://career.studentcompanionai.rw/messages.html" />
 
   <meta name="theme-color" content="#1A1A1A" />
   <link rel="manifest" href="site.webmanifest" />
@@ -47,7 +47,7 @@
         <a href="about.html">About</a>
         <a href="match.html">CV Checker</a>
         <a href="community.html">Common Room</a>
-        <a href="messages.html">Messages<span class="nav-badge" id="nav-unread-badge" hidden></span></a>
+        <a href="messages.html" class="nav-active" aria-current="page">Messages<span class="nav-badge" id="nav-unread-badge" hidden></span></a>
         <a href="login.html" id="nav-login">Log In</a>
         <a href="account.html" id="nav-account" hidden>My Account</a>
       </nav>
@@ -56,60 +56,47 @@
 
   <main id="main-content" role="main">
     <!-- ===== Signed-out gate ===== -->
-    <section class="container" id="member-signed-out" hidden style="padding: var(--s-9) var(--s-4);">
+    <section class="container" id="messages-signed-out" hidden style="padding: var(--s-9) var(--s-4);">
       <div class="saved-empty">
-        <p>Log in to view student profiles in the SCA community.</p>
+        <p>Log in to message your Companions.</p>
         <a href="login.html" class="btn btn-primary" style="margin-top: var(--s-4);">Log In / Sign Up</a>
       </div>
     </section>
 
-    <!-- ===== Not found ===== -->
-    <section class="container" id="member-not-found" hidden style="padding: var(--s-9) var(--s-4);">
-      <div class="saved-empty">
-        <p>That student profile couldn't be found.</p>
-        <a href="community.html" class="btn btn-primary" style="margin-top: var(--s-4);">Back to the Common Room</a>
-      </div>
-    </section>
+    <!-- ===== Signed-in view ===== -->
+    <section id="messages-signed-in" hidden>
+      <div class="messages-shell" id="messages-shell">
+        <aside class="conversations-panel" id="conversations-panel">
+          <div class="conversations-header">
+            <h1 class="page-title" style="margin: 0;">Messages</h1>
+          </div>
+          <div class="conversations-list" id="conversations-list"></div>
+          <div class="conversations-empty" id="conversations-empty" hidden>
+            <p>No conversations yet.</p>
+            <p class="auth-hint">Add someone as a Companion from their profile, then message them here.</p>
+          </div>
+        </aside>
 
-    <!-- ===== Profile ===== -->
-    <section class="page-header" id="member-profile" hidden>
-      <div class="container">
-        <div class="account-header">
-          <div class="account-header-main">
-            <div class="account-avatar" id="member-avatar">
-              <img id="member-avatar-img" alt="" hidden />
-              <span id="member-avatar-initials">—</span>
+        <section class="thread-panel" id="thread-panel" hidden>
+          <div class="thread-header" id="thread-header">
+            <button type="button" class="thread-back" id="thread-back" aria-label="Back to conversations">←</button>
+            <div class="account-avatar account-avatar--sm" id="thread-avatar">
+              <img id="thread-avatar-img" alt="" hidden />
+              <span id="thread-avatar-initials">—</span>
             </div>
-            <div>
-              <h1 class="page-title" id="member-name">—</h1>
-              <p class="page-lead" id="member-meta">—</p>
-            </div>
+            <a href="#" class="post-author-name" id="thread-partner-name">—</a>
           </div>
-          <div class="account-header-actions">
-            <a class="btn btn-ghost" id="btn-message" href="#" hidden>Message</a>
-            <button class="btn btn-primary" id="btn-companion" hidden>+ Companion</button>
-            <span class="member-self-note" id="member-self-note" hidden>This is you</span>
-            <span class="member-message-hint" id="member-message-hint" hidden>Add each other as Companions to message.</span>
-          </div>
-        </div>
+          <div class="thread-messages" id="thread-messages"></div>
+          <form class="thread-form" id="thread-form">
+            <input type="text" id="thread-input" placeholder="Write a message…" maxlength="2000" required autocomplete="off" />
+            <button type="submit" class="btn btn-primary">Send</button>
+          </form>
+        </section>
 
-        <div class="companion-stats">
-          <div class="companion-stat">
-            <strong id="stat-companions">0</strong>
-            <span>Companions</span>
-          </div>
-          <div class="companion-stat">
-            <strong id="stat-companioning">0</strong>
-            <span>Companioning</span>
-          </div>
+        <div class="thread-placeholder" id="thread-placeholder">
+          <p>Select a conversation to start messaging.</p>
         </div>
       </div>
-    </section>
-
-    <section class="container" id="member-posts-section" hidden style="padding: var(--s-7) var(--s-4) var(--s-9);">
-      <h2 class="section-title">Posts in the Common Room</h2>
-      <div class="posts-list" id="member-posts-list"></div>
-      <p class="posts-empty" id="member-posts-empty" hidden>No posts yet.</p>
     </section>
   </main>
 
@@ -154,6 +141,6 @@
   <script src="js/regions.js"></script>
   <script src="js/supabase-client.js"></script>
   <script src="script.js"></script>
-  <script src="js/member.js"></script>
+  <script src="js/messages.js"></script>
 </body>
 </html>

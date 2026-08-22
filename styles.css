@@ -283,6 +283,7 @@ em { font-style: italic; color: var(--gold); }
   font-size: 0.9375rem;
   font-weight: 500;
   position: relative;
+  white-space: nowrap;
 }
 
 .site-nav a:not(.nav-cta):hover {
@@ -315,7 +316,6 @@ em { font-style: italic; color: var(--gold); }
 }
 
 @media (max-width: 720px) {
-  .site-nav a:not(.nav-cta) { display: none; }
   .brand-sub { display: none; }
 }
 
@@ -1435,6 +1435,7 @@ em { font-style: italic; color: var(--gold); }
   color: var(--ink);
   cursor: pointer;
   padding: 0;
+  white-space: nowrap;
 }
 
 .nav-dropdown-toggle:hover,

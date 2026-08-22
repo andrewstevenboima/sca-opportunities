@@ -49,6 +49,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     return escapeHTML(str);
   }
 
+  function linkify(escapedText) {
+    return escapedText.replace(/(https?:\/\/[^\s<]+)/g, (url) => {
+      const trailingMatch = url.match(/[).,!?;:]+$/);
+      const trailing = trailingMatch ? trailingMatch[0] : "";
+      const clean = trailing ? url.slice(0, -trailing.length) : url;
+      return `<a href="${clean}" target="_blank" rel="noopener">${clean}</a>${trailing}`;
+    });
+  }
+
   let profile;
   try {
     profile = await window.SCA.getPublicProfile(memberId);
@@ -142,7 +151,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           (p) => `
         <article class="post-card">
           <h3 class="post-title"><a href="community.html">${escapeHTML(p.title)}</a></h3>
-          <p class="post-body">${escapeHTML(p.body)}</p>
+          <p class="post-body">${linkify(escapeHTML(p.body))}</p>
         </article>
       `
         )

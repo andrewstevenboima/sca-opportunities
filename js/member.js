@@ -87,6 +87,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     avatarInitials.textContent = initials(profile.full_name);
   }
 
+  const shareProfileBtn = document.getElementById("btn-share-profile");
+  if (shareProfileBtn) {
+    shareProfileBtn.hidden = false;
+    shareProfileBtn.addEventListener("click", () => {
+      shareContent(shareProfileBtn, {
+        url: window.location.href,
+        text: `Check out ${profile.full_name || "this student"}'s profile on SCA Opportunities`,
+      });
+    });
+  }
+
   const isSelf = memberId === currentUser.id;
   const companionBtn = document.getElementById("btn-companion");
   const selfNote = document.getElementById("member-self-note");

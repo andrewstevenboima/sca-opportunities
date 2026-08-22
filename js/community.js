@@ -320,12 +320,20 @@ document.addEventListener("DOMContentLoaded", async () => {
       <p class="post-body">${linkify(renderAllMention(renderMentions(escapeHTML(post.body), await getAllProfiles())))}</p>
       <div class="post-actions">
         <button type="button" class="post-toggle-comments" data-post-id="${escapeAttr(post.id)}">Comments</button>
+        <button type="button" class="post-share" data-post-id="${escapeAttr(post.id)}">Share</button>
         ${isOwn ? `<button type="button" class="post-delete" data-post-id="${escapeAttr(post.id)}">Delete</button>` : ""}
       </div>
       <div class="post-comments" hidden></div>
     `;
 
     card.querySelector(".post-toggle-comments").addEventListener("click", () => toggleComments(card, post.id));
+    const shareBtn = card.querySelector(".post-share");
+    shareBtn.addEventListener("click", () => {
+      shareContent(shareBtn, {
+        url: `${window.location.origin}/community.html?post=${encodeURIComponent(post.id)}`,
+        text: `${name}: "${post.title}" — SCA Opportunities Common Room`,
+      });
+    });
     const deleteBtn = card.querySelector(".post-delete");
     if (deleteBtn) {
       deleteBtn.addEventListener("click", async () => {
@@ -366,8 +374,15 @@ document.addEventListener("DOMContentLoaded", async () => {
           <div class="comment-body">
             <a href="member.html?id=${escapeAttr(comment.user_id)}" class="post-author-name">${escapeHTML(commentAuthorName)}</a>
             <p class="comment-body-text">${linkify(renderAllMention(renderMentions(escapeHTML(comment.body), profiles)))}</p>
+            <button type="button" class="comment-share">Share</button>
           </div>
         `;
+        row.querySelector(".comment-share").addEventListener("click", (e) => {
+          shareContent(e.currentTarget, {
+            url: `${window.location.origin}/community.html?post=${encodeURIComponent(postId)}`,
+            text: `${commentAuthorName} commented on the Common Room: "${comment.body}"`,
+          });
+        });
         box.appendChild(row);
       }
 

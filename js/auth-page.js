@@ -141,7 +141,7 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         formSignup.reset();
         switchTab("login");
-        showSuccess(`We've sent a confirmation link to ${email}. Open it to activate your account, then log in here.`);
+        showSuccess(`We've sent a confirmation link to ${email}. Open it to activate your account, then log in here. Don't see it? Check your Spam or Junk folder — the link works from there too.`);
       }
     } catch (err) {
       showError(err.message || "Couldn't create your account.");

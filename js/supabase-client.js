@@ -163,6 +163,20 @@ const SCA = {
     return data;
   },
 
+  async listAllProfiles() {
+    // Powers the Students directory — every student with a profile,
+    // newest first. Capped at 500 since this is a client-rendered
+    // grid; revisit with pagination if the platform grows past that.
+    if (!sb) return [];
+    const { data, error } = await sb
+      .from("public_profiles")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(500);
+    if (error) throw error;
+    return data;
+  },
+
   // ---- Companions (this platform's word for "follow") ----
 
   async listCompanions(userId) {

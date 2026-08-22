@@ -73,6 +73,11 @@
   font-size: 0.75rem;
 }
 
+.post-author-avatar-link {
+  display: flex;
+  flex-shrink: 0;
+}
+
 .post-author-name {
   font-weight: 600;
   color: var(--ink);

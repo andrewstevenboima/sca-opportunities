@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const threadBack = document.getElementById("thread-back");
   const threadAvatarImg = document.getElementById("thread-avatar-img");
   const threadAvatarInitials = document.getElementById("thread-avatar-initials");
+  const threadAvatarLink = document.getElementById("thread-avatar-link");
   const threadPartnerName = document.getElementById("thread-partner-name");
   const threadMessages = document.getElementById("thread-messages");
   const threadForm = document.getElementById("thread-form");
@@ -159,6 +160,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     threadPartnerName.textContent = profile?.full_name || "A student";
     threadPartnerName.href = `member.html?id=${encodeURIComponent(partnerId)}`;
+    threadAvatarLink.href = `member.html?id=${encodeURIComponent(partnerId)}`;
     avatarInto(threadAvatarImg, threadAvatarInitials, profile);
 
     threadMessages.innerHTML = `<p class="auth-hint">Loading messages…</p>`;

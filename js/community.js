@@ -309,7 +309,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     card.innerHTML = `
       <div class="post-card-head">
         <div class="post-author">
-          ${avatarHTML(author, "account-avatar--sm")}
+          <a href="member.html?id=${escapeAttr(post.user_id)}" class="post-author-avatar-link" aria-label="View ${escapeAttr(name)}'s profile">${avatarHTML(author, "account-avatar--sm")}</a>
           <div>
             <a href="member.html?id=${escapeAttr(post.user_id)}" class="post-author-name">${escapeHTML(name)}</a>
             <div class="post-time">${formatTime(post.created_at)}</div>
@@ -360,10 +360,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         const author = await getAuthor(comment.user_id);
         const row = document.createElement("div");
         row.className = "comment";
+        const commentAuthorName = author?.full_name || "A student";
         row.innerHTML = `
-          ${avatarHTML(author, "account-avatar--sm")}
+          <a href="member.html?id=${escapeAttr(comment.user_id)}" class="post-author-avatar-link" aria-label="View ${escapeAttr(commentAuthorName)}'s profile">${avatarHTML(author, "account-avatar--sm")}</a>
           <div class="comment-body">
-            <a href="member.html?id=${escapeAttr(comment.user_id)}" class="post-author-name">${escapeHTML(author?.full_name || "A student")}</a>
+            <a href="member.html?id=${escapeAttr(comment.user_id)}" class="post-author-name">${escapeHTML(commentAuthorName)}</a>
             <p class="comment-body-text">${linkify(renderAllMention(renderMentions(escapeHTML(comment.body), profiles)))}</p>
           </div>
         `;

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Students — SCA Opportunities</title>
+  <title>Students | SCA Opportunities</title>
   <meta name="description" content="Find and connect with other students on SCA Opportunities." />
   <meta name="robots" content="noindex, nofollow" />
   <link rel="canonical" href="https://career.studentcompanionai.rw/students.html" />
@@ -47,9 +47,18 @@
         <a href="sources.html">Sources</a>
         <a href="about.html">About</a>
         <a href="match.html">CV Checker</a>
-        <a href="community.html">Common Room</a>
-        <a href="students.html" class="nav-active" aria-current="page">Students</a>
-        <a href="messages.html">Messages<span class="nav-badge" id="nav-unread-badge" hidden></span></a>
+        <div class="nav-dropdown" id="nav-community-dropdown">
+          <button type="button" id="nav-dropdown-toggle" class="nav-dropdown-toggle nav-active" aria-current="page" aria-haspopup="true" aria-expanded="false">
+            Community
+            <span class="nav-badge" id="nav-unread-badge" hidden></span>
+            <span class="nav-dropdown-arrow" aria-hidden="true">▾</span>
+          </button>
+          <div class="nav-dropdown-menu" id="nav-dropdown-menu">
+            <a href="community.html">Common Room</a>
+            <a href="students.html" class="nav-active" aria-current="page">Students</a>
+            <a href="messages.html">Messages</a>
+          </div>
+        </div>
         <a href="login.html" id="nav-login">Log In</a>
         <a href="account.html" id="nav-account" hidden>My Account</a>
       </nav>

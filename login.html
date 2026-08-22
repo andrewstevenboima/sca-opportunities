@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Log In / Sign Up — SCA Opportunities</title>
+  <title>Log In / Sign Up | SCA Opportunities</title>
   <meta name="description" content="Create a free student account to save opportunities and pick up where you left off. Currently open to East and West Africa." />
   <meta name="robots" content="noindex, follow" />
   <link rel="canonical" href="https://career.studentcompanionai.rw/login.html" />
@@ -47,9 +47,18 @@
         <a href="sources.html">Sources</a>
         <a href="about.html">About</a>
         <a href="match.html">CV Checker</a>
-        <a href="community.html">Common Room</a>
-        <a href="students.html">Students</a>
-        <a href="messages.html">Messages<span class="nav-badge" id="nav-unread-badge" hidden></span></a>
+        <div class="nav-dropdown" id="nav-community-dropdown">
+          <button type="button" id="nav-dropdown-toggle" class="nav-dropdown-toggle" aria-haspopup="true" aria-expanded="false">
+            Community
+            <span class="nav-badge" id="nav-unread-badge" hidden></span>
+            <span class="nav-dropdown-arrow" aria-hidden="true">▾</span>
+          </button>
+          <div class="nav-dropdown-menu" id="nav-dropdown-menu">
+            <a href="community.html">Common Room</a>
+            <a href="students.html">Students</a>
+            <a href="messages.html">Messages</a>
+          </div>
+        </div>
         <a href="login.html" id="nav-login" class="nav-active" aria-current="page">Log In</a>
         <a href="account.html" id="nav-account" hidden>My Account</a>
       </nav>
@@ -131,7 +140,7 @@
         </form>
 
         <p class="auth-scope-note">
-          Accounts are open to students in East and West Africa for now — we'll expand to the rest of the continent soon.
+          Accounts are open to students in East and West Africa for now. We'll expand to the rest of the continent soon.
           Browsing opportunities never requires an account.
         </p>
       </div>

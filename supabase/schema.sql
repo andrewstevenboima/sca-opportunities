@@ -146,6 +146,61 @@ from public.profiles;
 grant select on public.public_profiles to authenticated;
 
 -- ---------------------------------------------------------------
+-- The public_profiles VIEW above relies on Postgres running it with
+-- the view owner's privileges (which bypass RLS on `profiles`). That
+-- is the documented default, but if it's ever misbehaving for any
+-- reason (e.g. a stricter Postgres/Supabase configuration), these
+-- SECURITY DEFINER functions are a second, unambiguous way to get
+-- the same result — a security definer function ALWAYS runs with
+-- its creator's privileges regardless of view settings. The app's
+-- JS now calls these via .rpc(...) instead of querying the view
+-- directly, so this is the actual mechanism the Students directory
+-- and profile lookups depend on.
+-- ---------------------------------------------------------------
+create or replace function public.list_public_profiles()
+returns setof public.public_profiles
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select id, full_name, avatar_url, region, country, university, created_at
+  from public.profiles
+  order by created_at desc
+  limit 500;
+$$;
+
+grant execute on function public.list_public_profiles() to authenticated;
+
+create or replace function public.get_public_profile(profile_id uuid)
+returns setof public.public_profiles
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select id, full_name, avatar_url, region, country, university, created_at
+  from public.profiles
+  where id = profile_id;
+$$;
+
+grant execute on function public.get_public_profile(uuid) to authenticated;
+
+create or replace function public.get_public_profiles(profile_ids uuid[])
+returns setof public.public_profiles
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select id, full_name, avatar_url, region, country, university, created_at
+  from public.profiles
+  where id = any(profile_ids);
+$$;
+
+grant execute on function public.get_public_profiles(uuid[]) to authenticated;
+
+-- ---------------------------------------------------------------
 -- companions: the "Companion" relationship (this platform's word
 -- for follow). companion_id is the student doing the companioning,
 -- companioned_id is the student being companioned. Companion

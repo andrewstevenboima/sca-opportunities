@@ -139,9 +139,9 @@ document.addEventListener("DOMContentLoaded", () => {
       if (data.session) {
         window.location.href = "account.html";
       } else {
-        showSuccess("Account created — check your email to confirm, then log in.");
         formSignup.reset();
         switchTab("login");
+        showSuccess(`We've sent a confirmation link to ${email}. Open it to activate your account, then log in here.`);
       }
     } catch (err) {
       showError(err.message || "Couldn't create your account.");

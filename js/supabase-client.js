@@ -12,6 +12,14 @@
 const SUPABASE_URL = "https://qawsxrusvacdcdumzgsv.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_XQuiqZEEEYMfmEZ18W8K2w_p_OP8nSB";
 
+// Captured before createClient() below touches the URL, so we still
+// see it even though supabase-js strips the confirmation params from
+// the address bar once it parses the session out of them.
+const emailJustConfirmed =
+  typeof window !== "undefined" &&
+  (window.location.hash.includes("type=signup") ||
+    new URLSearchParams(window.location.search).get("type") === "signup");
+
 const sb =
   typeof window !== "undefined" &&
   window.supabase &&
@@ -21,6 +29,7 @@ const sb =
 
 const SCA = {
   ready: !!sb,
+  justConfirmedEmail: emailJustConfirmed,
 
   async signUp({ email, password, fullName, region, country, yearOfStudy, university }) {
     if (!sb) throw new Error("Supabase is not configured yet.");
@@ -142,23 +151,19 @@ const SCA = {
 
   // ---- Public profiles (name/photo/region only — see schema.sql) ----
 
+  // Routed through SECURITY DEFINER functions (see schema.sql) rather
+  // than querying the public_profiles view directly — a version-proof
+  // way to guarantee every signed-in student can see every profile.
   async getPublicProfile(userId) {
     if (!sb) return null;
-    const { data, error } = await sb
-      .from("public_profiles")
-      .select("*")
-      .eq("id", userId)
-      .single();
+    const { data, error } = await sb.rpc("get_public_profile", { profile_id: userId });
     if (error) throw error;
-    return data;
+    return data?.[0] || null;
   },
 
   async getPublicProfiles(userIds) {
     if (!sb || !userIds.length) return [];
-    const { data, error } = await sb
-      .from("public_profiles")
-      .select("*")
-      .in("id", userIds);
+    const { data, error } = await sb.rpc("get_public_profiles", { profile_ids: userIds });
     if (error) throw error;
     return data;
   },
@@ -168,11 +173,7 @@ const SCA = {
     // newest first. Capped at 500 since this is a client-rendered
     // grid; revisit with pagination if the platform grows past that.
     if (!sb) return [];
-    const { data, error } = await sb
-      .from("public_profiles")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(500);
+    const { data, error } = await sb.rpc("list_public_profiles");
     if (error) throw error;
     return data;
   },

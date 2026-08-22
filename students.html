@@ -4,9 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Member — SCA Opportunities</title>
+  <title>Students — SCA Opportunities</title>
+  <meta name="description" content="Find and connect with other students on SCA Opportunities." />
   <meta name="robots" content="noindex, nofollow" />
-  <link rel="canonical" href="https://career.studentcompanionai.rw/member.html" />
+  <link rel="canonical" href="https://career.studentcompanionai.rw/students.html" />
 
   <meta name="theme-color" content="#1A1A1A" />
   <link rel="manifest" href="site.webmanifest" />
@@ -47,7 +48,7 @@
         <a href="about.html">About</a>
         <a href="match.html">CV Checker</a>
         <a href="community.html">Common Room</a>
-        <a href="students.html">Students</a>
+        <a href="students.html" class="nav-active" aria-current="page">Students</a>
         <a href="messages.html">Messages<span class="nav-badge" id="nav-unread-badge" hidden></span></a>
         <a href="login.html" id="nav-login">Log In</a>
         <a href="account.html" id="nav-account" hidden>My Account</a>
@@ -56,61 +57,30 @@
   </header>
 
   <main id="main-content" role="main">
+    <section class="page-header">
+      <div class="container">
+        <h1 class="page-title">Students</h1>
+        <p class="page-lead">Find and connect with other students on SCA Opportunities.</p>
+      </div>
+    </section>
+
     <!-- ===== Signed-out gate ===== -->
-    <section class="container" id="member-signed-out" hidden style="padding: var(--s-9) var(--s-4);">
+    <section class="container" id="students-signed-out" hidden style="padding: var(--s-4) var(--s-4) var(--s-9);">
       <div class="saved-empty">
-        <p>Log in to view student profiles in the SCA community.</p>
+        <p>Log in to browse students on the platform.</p>
         <a href="login.html" class="btn btn-primary" style="margin-top: var(--s-4);">Log In / Sign Up</a>
       </div>
     </section>
 
-    <!-- ===== Not found ===== -->
-    <section class="container" id="member-not-found" hidden style="padding: var(--s-9) var(--s-4);">
-      <div class="saved-empty">
-        <p>That student profile couldn't be found.</p>
-        <a href="community.html" class="btn btn-primary" style="margin-top: var(--s-4);">Back to the Common Room</a>
+    <!-- ===== Signed-in view ===== -->
+    <section class="container" id="students-signed-in" hidden style="padding: var(--s-4) var(--s-4) var(--s-9);">
+      <div class="auth-field" style="max-width: 420px; margin-bottom: var(--s-6);">
+        <label for="student-search">Search by name, country, or university</label>
+        <input type="text" id="student-search" placeholder="e.g. Rwanda, University of Rwanda, Aline…" autocomplete="off" />
       </div>
-    </section>
 
-    <!-- ===== Profile ===== -->
-    <section class="page-header" id="member-profile" hidden>
-      <div class="container">
-        <div class="account-header">
-          <div class="account-header-main">
-            <div class="account-avatar" id="member-avatar">
-              <img id="member-avatar-img" alt="" hidden />
-              <span id="member-avatar-initials">—</span>
-            </div>
-            <div>
-              <h1 class="page-title" id="member-name">—</h1>
-              <p class="page-lead" id="member-meta">—</p>
-            </div>
-          </div>
-          <div class="account-header-actions">
-            <a class="btn btn-ghost" id="btn-message" href="#" hidden>Message</a>
-            <button class="btn btn-primary" id="btn-companion" hidden>+ Companion</button>
-            <span class="member-self-note" id="member-self-note" hidden>This is you</span>
-            <span class="member-message-hint" id="member-message-hint" hidden>Add each other as Companions to message.</span>
-          </div>
-        </div>
-
-        <div class="companion-stats">
-          <div class="companion-stat">
-            <strong id="stat-companions">0</strong>
-            <span>Companions</span>
-          </div>
-          <div class="companion-stat">
-            <strong id="stat-companioning">0</strong>
-            <span>Companioning</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="container" id="member-posts-section" hidden style="padding: var(--s-7) var(--s-4) var(--s-9);">
-      <h2 class="section-title">Posts in the Common Room</h2>
-      <div class="posts-list" id="member-posts-list"></div>
-      <p class="posts-empty" id="member-posts-empty" hidden>No posts yet.</p>
+      <div class="member-grid" id="students-grid"></div>
+      <p class="posts-empty" id="students-empty" hidden>No students match your search.</p>
     </section>
   </main>
 
@@ -155,6 +125,6 @@
   <script src="js/regions.js"></script>
   <script src="js/supabase-client.js"></script>
   <script src="script.js"></script>
-  <script src="js/member.js"></script>
+  <script src="js/students.js"></script>
 </body>
 </html>

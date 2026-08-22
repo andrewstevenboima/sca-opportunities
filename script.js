@@ -65,6 +65,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Toggle "Log In" / "My Account" nav links (all pages)
   wireAuthNav();
 
+  // Notification bell (all pages)
+  wireNotifications();
+
   // Confirmation-link redirects can land on any page depending on the
   // Supabase project's configured Site URL, so this check (and the
   // flag it reads) has to run globally rather than on one page.
@@ -198,6 +201,147 @@ function wireNavDropdown() {
     if (e.key === "Escape") {
       dropdown.classList.remove("is-open");
       toggle.setAttribute("aria-expanded", "false");
+    }
+  });
+}
+
+// Notification bell — @mentions from the Common Room. Runs on every
+// page since a mention can happen while the recipient is anywhere
+// on the site, not just on community.html.
+function wireNotifications() {
+  const bell = document.getElementById("notif-bell");
+  const toggle = document.getElementById("notif-bell-toggle");
+  const badge = document.getElementById("notif-unread-badge");
+  const list = document.getElementById("notif-list");
+  const empty = document.getElementById("notif-empty");
+  const markAllBtn = document.getElementById("notif-mark-all-read");
+  if (!bell || !window.SCA || !window.SCA.ready) return;
+
+  const profileCache = new Map();
+  async function getActor(userId) {
+    if (profileCache.has(userId)) return profileCache.get(userId);
+    try {
+      const profile = await window.SCA.getPublicProfile(userId);
+      profileCache.set(userId, profile);
+      return profile;
+    } catch (err) {
+      return null;
+    }
+  }
+
+  function messageFor(n, actorName) {
+    switch (n.type) {
+      case "mention_post":
+        return `${actorName} mentioned you in a post`;
+      case "mention_comment":
+        return `${actorName} mentioned you in a comment`;
+      case "mention_all_post":
+        return `${actorName} mentioned everyone in a post`;
+      case "mention_all_comment":
+        return `${actorName} mentioned everyone in a comment`;
+      default:
+        return `${actorName} mentioned you`;
+    }
+  }
+
+  function formatNotifTime(iso) {
+    const d = new Date(iso);
+    return (
+      d.toLocaleDateString("en-GB", { day: "numeric", month: "short" }) +
+      " · " +
+      d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
+    );
+  }
+
+  async function loadNotifications(userId) {
+    let notifications;
+    try {
+      notifications = await window.SCA.listNotifications(userId);
+    } catch (err) {
+      list.innerHTML = "";
+      empty.hidden = false;
+      empty.textContent = "Couldn't load notifications.";
+      return;
+    }
+    if (!notifications.length) {
+      list.innerHTML = "";
+      empty.hidden = false;
+      empty.textContent = "No notifications yet.";
+      return;
+    }
+    empty.hidden = true;
+    list.innerHTML = "";
+    for (const n of notifications) {
+      const actor = await getActor(n.actor_id);
+      const item = document.createElement("button");
+      item.type = "button";
+      item.className = "notif-item" + (n.read_at ? "" : " is-unread");
+      item.innerHTML = `
+        ${messageFor(n, actor?.full_name || "A student")}
+        <span class="notif-item-time">${formatNotifTime(n.created_at)}</span>
+      `;
+      item.addEventListener("click", async () => {
+        if (!n.read_at) {
+          try {
+            await window.SCA.markNotificationRead(n.id);
+          } catch (err) {
+            // Non-fatal — the notification still opens either way.
+          }
+        }
+        window.location.href = n.post_id
+          ? `community.html?post=${encodeURIComponent(n.post_id)}`
+          : "community.html";
+      });
+      list.appendChild(item);
+    }
+  }
+
+  async function refreshBadge(userId) {
+    try {
+      const count = await window.SCA.unreadNotificationCount(userId);
+      badge.hidden = !count;
+      badge.textContent = count > 9 ? "9+" : String(count);
+    } catch (err) {
+      // Non-fatal — leave the badge at its previous state.
+    }
+  }
+
+  window.SCA.getSession().then((session) => {
+    if (!session) return;
+    bell.hidden = false;
+    refreshBadge(session.user.id);
+
+    toggle.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const isOpen = bell.classList.toggle("is-open");
+      toggle.setAttribute("aria-expanded", String(isOpen));
+      if (isOpen) loadNotifications(session.user.id);
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!bell.contains(e.target)) {
+        bell.classList.remove("is-open");
+        toggle.setAttribute("aria-expanded", "false");
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        bell.classList.remove("is-open");
+        toggle.setAttribute("aria-expanded", "false");
+      }
+    });
+
+    if (markAllBtn) {
+      markAllBtn.addEventListener("click", async () => {
+        try {
+          await window.SCA.markAllNotificationsRead(session.user.id);
+          list.querySelectorAll(".notif-item.is-unread").forEach((el) => el.classList.remove("is-unread"));
+          refreshBadge(session.user.id);
+        } catch (err) {
+          alert("Couldn't mark notifications as read.");
+        }
+      });
     }
   });
 }

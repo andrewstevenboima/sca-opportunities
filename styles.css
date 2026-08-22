@@ -1487,6 +1487,117 @@ em { font-style: italic; color: var(--gold); }
   font-weight: 600;
 }
 
+/* --- Notification bell --- */
+.notif-bell {
+  position: relative;
+}
+
+.notif-bell-toggle {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  background: none;
+  border: none;
+  font-size: 1.15rem;
+  cursor: pointer;
+  padding: 0;
+  color: var(--ink);
+}
+
+.notif-bell-toggle .nav-badge {
+  position: absolute;
+  top: -6px;
+  right: -10px;
+  margin-left: 0;
+}
+
+.notif-panel {
+  display: none;
+  flex-direction: column;
+  position: absolute;
+  top: calc(100% + 0.75rem);
+  right: 0;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 30px -12px rgba(26, 26, 26, 0.18);
+  width: 320px;
+  max-width: 90vw;
+  max-height: 400px;
+  z-index: 300;
+}
+
+.notif-bell.is-open .notif-panel {
+  display: flex;
+}
+
+.notif-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+
+.notif-panel-head h3 {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-family: var(--font-body);
+}
+
+.notif-mark-all {
+  background: none;
+  border: none;
+  color: var(--gold);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.notif-list {
+  overflow-y: auto;
+}
+
+.notif-item {
+  display: block;
+  width: 100%;
+  padding: var(--s-3) var(--s-4);
+  border: none;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  color: var(--ink);
+  background: none;
+  font-family: inherit;
+}
+
+.notif-item:hover {
+  background: var(--cream);
+}
+
+.notif-item.is-unread {
+  background: var(--gold-wash);
+  font-weight: 600;
+}
+
+.notif-item-time {
+  display: block;
+  margin-top: var(--s-1);
+  font-size: 0.6875rem;
+  color: var(--ink-mute);
+  font-weight: 400;
+}
+
+.notif-empty {
+  padding: var(--s-5) var(--s-4);
+  color: var(--ink-mute);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
 /* --- Mobile nav toggle (hamburger) --- */
 .nav-toggle {
   display: none;

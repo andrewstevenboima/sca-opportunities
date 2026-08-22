@@ -389,6 +389,56 @@ const SCA = {
     if (error) throw error;
     return count || 0;
   },
+
+  // ---- Notifications (@mentions in the Common Room) ----
+
+  async listNotifications(userId, limit = 20) {
+    if (!sb) return [];
+    const { data, error } = await sb
+      .from("notifications")
+      .select("*")
+      .eq("recipient_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return data;
+  },
+
+  async unreadNotificationCount(userId) {
+    if (!sb) return 0;
+    const { count, error } = await sb
+      .from("notifications")
+      .select("id", { count: "exact", head: true })
+      .eq("recipient_id", userId)
+      .is("read_at", null);
+    if (error) throw error;
+    return count || 0;
+  },
+
+  async markNotificationRead(notificationId) {
+    if (!sb) return;
+    const { error } = await sb
+      .from("notifications")
+      .update({ read_at: new Date().toISOString() })
+      .eq("id", notificationId);
+    if (error) throw error;
+  },
+
+  async markAllNotificationsRead(userId) {
+    if (!sb) return;
+    const { error } = await sb
+      .from("notifications")
+      .update({ read_at: new Date().toISOString() })
+      .eq("recipient_id", userId)
+      .is("read_at", null);
+    if (error) throw error;
+  },
+
+  async createNotifications(rows) {
+    if (!sb || !rows.length) return;
+    const { error } = await sb.from("notifications").insert(rows);
+    if (error) throw error;
+  },
 };
 
 if (typeof window !== "undefined") window.SCA = SCA;

@@ -201,6 +201,43 @@ $$;
 grant execute on function public.get_public_profiles(uuid[]) to authenticated;
 
 -- ---------------------------------------------------------------
+-- notifications: created client-side whenever a post or comment
+-- mentions a student (@Full Name) or broadcasts to everyone (@all).
+-- The insert policy allows any signed-in student to create a
+-- notification row for ANY recipient as long as they are the actor
+-- (auth.uid() = actor_id) — this is what lets a mention notify
+-- someone other than the person creating the row, the same pattern
+-- already used for companions/discussion tables in this schema.
+-- ---------------------------------------------------------------
+create table if not exists public.notifications (
+  id uuid primary key default gen_random_uuid(),
+  recipient_id uuid not null references auth.users (id) on delete cascade,
+  actor_id uuid not null references auth.users (id) on delete cascade,
+  type text not null check (type in ('mention_post', 'mention_comment', 'mention_all_post', 'mention_all_comment')),
+  post_id uuid references public.discussion_posts (id) on delete cascade,
+  comment_id uuid references public.discussion_comments (id) on delete cascade,
+  created_at timestamptz not null default now(),
+  read_at timestamptz
+);
+
+alter table public.notifications enable row level security;
+
+drop policy if exists "notifications_select_own" on public.notifications;
+create policy "notifications_select_own" on public.notifications
+  for select using (auth.uid() = recipient_id);
+
+drop policy if exists "notifications_insert_as_actor" on public.notifications;
+create policy "notifications_insert_as_actor" on public.notifications
+  for insert with check (auth.uid() = actor_id);
+
+drop policy if exists "notifications_update_own" on public.notifications;
+create policy "notifications_update_own" on public.notifications
+  for update using (auth.uid() = recipient_id) with check (auth.uid() = recipient_id);
+
+create index if not exists notifications_recipient_created_idx on public.notifications (recipient_id, created_at desc);
+create index if not exists notifications_recipient_unread_idx on public.notifications (recipient_id, read_at);
+
+-- ---------------------------------------------------------------
 -- companions: the "Companion" relationship (this platform's word
 -- for follow). companion_id is the student doing the companioning,
 -- companioned_id is the student being companioned. Companion

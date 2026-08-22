@@ -439,6 +439,15 @@ const SCA = {
     const { error } = await sb.from("notifications").insert(rows);
     if (error) throw error;
   },
+
+  // Public even to signed-out visitors — see get_latest_post_teaser
+  // in schema.sql for what it deliberately does and doesn't expose.
+  async getLatestPostTeaser() {
+    if (!sb) return null;
+    const { data, error } = await sb.rpc("get_latest_post_teaser");
+    if (error) throw error;
+    return data?.[0] || null;
+  },
 };
 
 if (typeof window !== "undefined") window.SCA = SCA;

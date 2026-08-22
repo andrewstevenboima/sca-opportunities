@@ -201,6 +201,29 @@ $$;
 grant execute on function public.get_public_profiles(uuid[]) to authenticated;
 
 -- ---------------------------------------------------------------
+-- get_latest_post_teaser: powers the homepage announcement bar.
+-- discussion_posts itself is authenticated-only (see its policy
+-- above) — this SECURITY DEFINER function carves out a narrow,
+-- deliberate exception so a title-only teaser can entice signed-out
+-- visitors toward the Common Room, without exposing post bodies,
+-- authors, or any other Common Room content to the public.
+-- ---------------------------------------------------------------
+create or replace function public.get_latest_post_teaser()
+returns table (id uuid, title text, created_at timestamptz)
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select id, title, created_at
+  from public.discussion_posts
+  order by created_at desc
+  limit 1;
+$$;
+
+grant execute on function public.get_latest_post_teaser() to anon, authenticated;
+
+-- ---------------------------------------------------------------
 -- notifications: created client-side whenever a post or comment
 -- mentions a student (@Full Name) or broadcasts to everyone (@all).
 -- The insert policy allows any signed-in student to create a

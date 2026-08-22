@@ -84,7 +84,128 @@ document.addEventListener("DOMContentLoaded", async () => {
     applyURLParams();
     loadOpportunities();
   }
+
+  // Homepage-only, but harmless (no-ops) on every other page since
+  // each checks for its own element before doing anything.
+  wireAnnouncementBar();
+  loadHomepagePreview();
+  wireScrollReveal();
 });
+
+// A single-post teaser pointing new/signed-out visitors toward the
+// Common Room. Dismissal is remembered per-post (in localStorage) so
+// closing it doesn't hide the NEXT new post too.
+async function wireAnnouncementBar() {
+  const bar = document.getElementById("announcement-bar");
+  const link = document.getElementById("announcement-link");
+  const closeBtn = document.getElementById("announcement-close");
+  if (!bar || !window.SCA || !window.SCA.ready) return;
+
+  let post;
+  try {
+    post = await window.SCA.getLatestPostTeaser();
+  } catch (err) {
+    return;
+  }
+  if (!post) return;
+
+  let dismissedId = null;
+  try {
+    dismissedId = localStorage.getItem("sca_announcement_dismissed");
+  } catch (err) {
+    // Non-fatal — worst case the bar just isn't dismissible this session.
+  }
+  if (dismissedId === post.id) return;
+
+  link.textContent = `New in the Common Room: "${post.title}" — join the discussion →`;
+  link.href = `community.html?post=${encodeURIComponent(post.id)}`;
+  bar.hidden = false;
+
+  closeBtn.addEventListener("click", () => {
+    bar.hidden = true;
+    try {
+      localStorage.setItem("sca_announcement_dismissed", post.id);
+    } catch (err) {
+      // Non-fatal.
+    }
+  });
+}
+
+// Homepage "Live right now" strip — reuses the same opportunities
+// feed and live-status filter as opportunities.html, just capped to
+// a handful of picks.
+async function loadHomepagePreview() {
+  const section = document.getElementById("home-preview");
+  const grid = document.getElementById("home-preview-grid");
+  if (!section || !grid) return;
+
+  try {
+    let data;
+    const url =
+      typeof APPS_SCRIPT_URL !== "undefined" && APPS_SCRIPT_URL && !APPS_SCRIPT_URL.startsWith("REPLACE_")
+        ? `${APPS_SCRIPT_URL}?action=opportunities`
+        : "opportunities.json";
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      data = await res.json();
+    } catch (fetchErr) {
+      const res = await fetch("opportunities.json");
+      data = await res.json();
+    }
+
+    const list = (Array.isArray(data) ? data : data.opportunities || []).filter(
+      (o) => (o.status || "live").toLowerCase() === "live"
+    );
+    const picks = list.slice(0, 4);
+    if (!picks.length) return;
+
+    grid.innerHTML = picks
+      .map(
+        (o) => `
+      <article class="home-preview-card reveal">
+        <span class="home-preview-cat">${escapeHTML(o.category || "Opportunity")}</span>
+        <h3>${escapeHTML(o.title || "Untitled")}</h3>
+        ${o.organization ? `<p>${escapeHTML(o.organization)}</p>` : ""}
+        <a href="${escapeAttr(o.apply_link || "opportunities.html")}" target="_blank" rel="noopener" class="opp-apply">Apply →</a>
+      </article>
+    `
+      )
+      .join("");
+    section.hidden = false;
+    wireScrollReveal();
+  } catch (err) {
+    // Non-fatal — the homepage works fine without this bonus section.
+  }
+}
+
+// Fades/slides `.reveal` elements in as they scroll into view. Safe
+// to call more than once (e.g. after the preview grid injects new
+// `.reveal` cards) — already-observed elements just get skipped.
+const revealObserver =
+  "IntersectionObserver" in window
+    ? new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("is-visible");
+              revealObserver.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.15 }
+      )
+    : null;
+
+function wireScrollReveal() {
+  const items = document.querySelectorAll(".reveal:not(.is-visible)");
+  if (!items.length) return;
+  if (!revealObserver) {
+    items.forEach((el) => el.classList.add("is-visible"));
+    return;
+  }
+  items.forEach((el) => revealObserver.observe(el));
+}
 
 // Default the country filter to a logged-in student's own profile
 // country, so they land on opportunities near them — never a hard

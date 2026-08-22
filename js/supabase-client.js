@@ -139,6 +139,164 @@ const SCA = {
       .eq("opportunity_id", String(opportunityId));
     if (error) throw error;
   },
+
+  // ---- Public profiles (name/photo/region only — see schema.sql) ----
+
+  async getPublicProfile(userId) {
+    if (!sb) return null;
+    const { data, error } = await sb
+      .from("public_profiles")
+      .select("*")
+      .eq("id", userId)
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async getPublicProfiles(userIds) {
+    if (!sb || !userIds.length) return [];
+    const { data, error } = await sb
+      .from("public_profiles")
+      .select("*")
+      .in("id", userIds);
+    if (error) throw error;
+    return data;
+  },
+
+  // ---- Companions (this platform's word for "follow") ----
+
+  async listCompanions(userId) {
+    // Students companioning `userId` — their "Companions".
+    if (!sb) return [];
+    const { data, error } = await sb
+      .from("companions")
+      .select("companion_id, created_at")
+      .eq("companioned_id", userId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data;
+  },
+
+  async listCompanioning(userId) {
+    // Students `userId` companions — who they're "Companioning".
+    if (!sb) return [];
+    const { data, error } = await sb
+      .from("companions")
+      .select("companioned_id, created_at")
+      .eq("companion_id", userId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data;
+  },
+
+  async isCompanion(companionId, companionedId) {
+    if (!sb) return false;
+    const { data, error } = await sb
+      .from("companions")
+      .select("companion_id")
+      .eq("companion_id", companionId)
+      .eq("companioned_id", companionedId)
+      .maybeSingle();
+    if (error) throw error;
+    return !!data;
+  },
+
+  async addCompanion(companionId, companionedId) {
+    if (!sb) throw new Error("Supabase is not configured yet.");
+    const { error } = await sb
+      .from("companions")
+      .insert({ companion_id: companionId, companioned_id: companionedId });
+    if (error) throw error;
+  },
+
+  async removeCompanion(companionId, companionedId) {
+    if (!sb) return;
+    const { error } = await sb
+      .from("companions")
+      .delete()
+      .eq("companion_id", companionId)
+      .eq("companioned_id", companionedId);
+    if (error) throw error;
+  },
+
+  // ---- The Common Room (discussion board) ----
+
+  async listPosts() {
+    if (!sb) return [];
+    const { data, error } = await sb
+      .from("discussion_posts")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data;
+  },
+
+  async listPostsByUser(userId) {
+    if (!sb) return [];
+    const { data, error } = await sb
+      .from("discussion_posts")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data;
+  },
+
+  async getPost(postId) {
+    if (!sb) return null;
+    const { data, error } = await sb
+      .from("discussion_posts")
+      .select("*")
+      .eq("id", postId)
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async createPost(userId, { title, body }) {
+    if (!sb) throw new Error("Supabase is not configured yet.");
+    const { data, error } = await sb
+      .from("discussion_posts")
+      .insert({ user_id: userId, title, body })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async deletePost(postId) {
+    if (!sb) return;
+    const { error } = await sb.from("discussion_posts").delete().eq("id", postId);
+    if (error) throw error;
+  },
+
+  async listComments(postId) {
+    if (!sb) return [];
+    const { data, error } = await sb
+      .from("discussion_comments")
+      .select("*")
+      .eq("post_id", postId)
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+    return data;
+  },
+
+  async addComment(userId, postId, body) {
+    if (!sb) throw new Error("Supabase is not configured yet.");
+    const { data, error } = await sb
+      .from("discussion_comments")
+      .insert({ user_id: userId, post_id: postId, body })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async deleteComment(commentId) {
+    if (!sb) return;
+    const { error } = await sb.from("discussion_comments").delete().eq("id", commentId);
+    if (error) throw error;
+  },
 };
 
 if (typeof window !== "undefined") window.SCA = SCA;

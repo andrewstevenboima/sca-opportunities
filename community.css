@@ -1,0 +1,203 @@
+/* =============================================================
+   SCA Opportunities — Common Room + member profile pages
+   Loaded on top of styles.css + auth.css
+   ============================================================= */
+
+.new-post-card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: var(--s-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  margin-bottom: var(--s-7);
+}
+
+.new-post-card textarea {
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  color: var(--ink);
+  resize: vertical;
+}
+
+.new-post-card textarea:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-wash);
+}
+
+.posts-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+.posts-empty {
+  text-align: center;
+  padding: var(--s-8) var(--s-4);
+  color: var(--ink-mute);
+}
+
+.post-card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: var(--s-5);
+}
+
+.post-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-bottom: var(--s-3);
+}
+
+.post-author {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.account-avatar--sm {
+  width: 32px;
+  height: 32px;
+}
+
+.account-avatar--sm span {
+  font-size: 0.75rem;
+}
+
+.post-author-name {
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.post-author-name:hover {
+  text-decoration: underline;
+}
+
+.post-time {
+  font-size: 0.8125rem;
+  color: var(--ink-mute);
+}
+
+.post-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  margin: 0 0 var(--s-2);
+  cursor: pointer;
+}
+
+.post-body {
+  color: var(--ink);
+  font-size: 0.9375rem;
+  white-space: pre-wrap;
+  margin: 0 0 var(--s-3);
+}
+
+.post-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  font-size: 0.8125rem;
+}
+
+.post-toggle-comments,
+.post-delete {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.8125rem;
+}
+
+.post-toggle-comments {
+  color: var(--ink-mute);
+  font-weight: 600;
+}
+
+.post-delete {
+  color: var(--red);
+}
+
+.post-comments {
+  margin-top: var(--s-4);
+  padding-top: var(--s-4);
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.comment {
+  display: flex;
+  gap: var(--s-3);
+}
+
+.comment-body {
+  background: var(--cream);
+  border-radius: var(--radius-sm);
+  padding: var(--s-3);
+  flex: 1;
+}
+
+.comment-body-text {
+  margin: var(--s-1) 0 0;
+  font-size: 0.875rem;
+  white-space: pre-wrap;
+}
+
+.comment-form {
+  display: flex;
+  gap: var(--s-3);
+  margin-top: var(--s-2);
+}
+
+.comment-form input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 0.875rem;
+}
+
+.companion-stats {
+  display: flex;
+  gap: var(--s-6);
+  margin-top: var(--s-5);
+}
+
+.companion-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+}
+
+.companion-stat strong {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--ink);
+}
+
+.companion-stat span {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-mute);
+}
+
+.member-self-note {
+  font-size: 0.875rem;
+  color: var(--ink-mute);
+  font-style: italic;
+}

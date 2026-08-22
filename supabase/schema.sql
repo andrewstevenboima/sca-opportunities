@@ -126,3 +126,102 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
+
+-- ---------------------------------------------------------------
+-- public_profiles: a safe, public-readable projection of profiles
+-- for the Common Room / member pages — name, photo, region and
+-- university only. Sex, date of birth and email stay private on
+-- the `profiles` table, which only its owner can ever read.
+--
+-- This works because views run with the privileges of the role
+-- that created them (the SQL Editor's role, which bypasses RLS on
+-- the underlying table), not the querying user's — the standard
+-- Postgres/Supabase pattern for exposing a public slice of a
+-- private table.
+-- ---------------------------------------------------------------
+create or replace view public.public_profiles as
+select id, full_name, avatar_url, region, country, university, created_at
+from public.profiles;
+
+grant select on public.public_profiles to authenticated;
+
+-- ---------------------------------------------------------------
+-- companions: the "Companion" relationship (this platform's word
+-- for follow). companion_id is the student doing the companioning,
+-- companioned_id is the student being companioned. Companion
+-- relationships are public — like most social platforms, anyone
+-- signed in can see who companions whom, and the resulting counts.
+-- ---------------------------------------------------------------
+create table if not exists public.companions (
+  companion_id uuid not null references auth.users (id) on delete cascade,
+  companioned_id uuid not null references auth.users (id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (companion_id, companioned_id),
+  check (companion_id <> companioned_id)
+);
+
+alter table public.companions enable row level security;
+
+drop policy if exists "companions_select_all" on public.companions;
+create policy "companions_select_all" on public.companions
+  for select using (auth.role() = 'authenticated');
+
+drop policy if exists "companions_insert_own" on public.companions;
+create policy "companions_insert_own" on public.companions
+  for insert with check (auth.uid() = companion_id);
+
+drop policy if exists "companions_delete_own" on public.companions;
+create policy "companions_delete_own" on public.companions
+  for delete using (auth.uid() = companion_id);
+
+-- ---------------------------------------------------------------
+-- discussion_posts / discussion_comments: The Common Room. Any
+-- signed-in student can start a discussion or reply; posts and
+-- comments are readable by any signed-in student, and editable
+-- (delete-only, to keep this simple) only by their own author.
+-- ---------------------------------------------------------------
+create table if not exists public.discussion_posts (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  title text not null check (char_length(title) between 1 and 150),
+  body text not null check (char_length(body) between 1 and 5000),
+  created_at timestamptz not null default now()
+);
+
+alter table public.discussion_posts enable row level security;
+
+drop policy if exists "discussion_posts_select_all" on public.discussion_posts;
+create policy "discussion_posts_select_all" on public.discussion_posts
+  for select using (auth.role() = 'authenticated');
+
+drop policy if exists "discussion_posts_insert_own" on public.discussion_posts;
+create policy "discussion_posts_insert_own" on public.discussion_posts
+  for insert with check (auth.uid() = user_id);
+
+drop policy if exists "discussion_posts_delete_own" on public.discussion_posts;
+create policy "discussion_posts_delete_own" on public.discussion_posts
+  for delete using (auth.uid() = user_id);
+
+create table if not exists public.discussion_comments (
+  id uuid primary key default gen_random_uuid(),
+  post_id uuid not null references public.discussion_posts (id) on delete cascade,
+  user_id uuid not null references auth.users (id) on delete cascade,
+  body text not null check (char_length(body) between 1 and 2000),
+  created_at timestamptz not null default now()
+);
+
+alter table public.discussion_comments enable row level security;
+
+drop policy if exists "discussion_comments_select_all" on public.discussion_comments;
+create policy "discussion_comments_select_all" on public.discussion_comments
+  for select using (auth.role() = 'authenticated');
+
+drop policy if exists "discussion_comments_insert_own" on public.discussion_comments;
+create policy "discussion_comments_insert_own" on public.discussion_comments
+  for insert with check (auth.uid() = user_id);
+
+drop policy if exists "discussion_comments_delete_own" on public.discussion_comments;
+create policy "discussion_comments_delete_own" on public.discussion_comments
+  for delete using (auth.uid() = user_id);
+
+create index if not exists discussion_comments_post_id_idx on public.discussion_comments (post_id);

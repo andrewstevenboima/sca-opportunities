@@ -239,6 +239,8 @@ function wireNotifications() {
         return `${actorName} mentioned everyone in a post`;
       case "mention_all_comment":
         return `${actorName} mentioned everyone in a comment`;
+      case "companion_added":
+        return `${actorName} added you as a Companion`;
       default:
         return `${actorName} mentioned you`;
     }
@@ -288,9 +290,13 @@ function wireNotifications() {
             // Non-fatal — the notification still opens either way.
           }
         }
-        window.location.href = n.post_id
-          ? `community.html?post=${encodeURIComponent(n.post_id)}`
-          : "community.html";
+        if (n.type === "companion_added") {
+          window.location.href = `member.html?id=${encodeURIComponent(n.actor_id)}`;
+        } else {
+          window.location.href = n.post_id
+            ? `community.html?post=${encodeURIComponent(n.post_id)}`
+            : "community.html";
+        }
       });
       list.appendChild(item);
     }

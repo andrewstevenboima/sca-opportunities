@@ -147,6 +147,11 @@ document.addEventListener("DOMContentLoaded", async () => {
           await window.SCA.removeCompanion(currentUser.id, memberId);
         } else {
           await window.SCA.addCompanion(currentUser.id, memberId);
+          window.SCA.createNotifications([
+            { recipient_id: memberId, actor_id: currentUser.id, type: "companion_added" },
+          ]).catch(() => {
+            // Non-fatal — the Companion relationship itself already succeeded.
+          });
         }
         isCompanion = !isCompanion;
         paintButton();

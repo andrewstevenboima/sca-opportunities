@@ -213,12 +213,19 @@ create table if not exists public.notifications (
   id uuid primary key default gen_random_uuid(),
   recipient_id uuid not null references auth.users (id) on delete cascade,
   actor_id uuid not null references auth.users (id) on delete cascade,
-  type text not null check (type in ('mention_post', 'mention_comment', 'mention_all_post', 'mention_all_comment')),
+  type text not null check (type in ('mention_post', 'mention_comment', 'mention_all_post', 'mention_all_comment', 'companion_added')),
   post_id uuid references public.discussion_posts (id) on delete cascade,
   comment_id uuid references public.discussion_comments (id) on delete cascade,
   created_at timestamptz not null default now(),
   read_at timestamptz
 );
+
+-- Widens the type check for databases where this table already
+-- exists from an earlier run of this file (create table if not
+-- exists doesn't touch existing columns/constraints).
+alter table public.notifications drop constraint if exists notifications_type_check;
+alter table public.notifications add constraint notifications_type_check
+  check (type in ('mention_post', 'mention_comment', 'mention_all_post', 'mention_all_comment', 'companion_added'));
 
 alter table public.notifications enable row level security;
 

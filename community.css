@@ -102,6 +102,12 @@
   margin: 0 0 var(--s-3);
 }
 
+.post-body a,
+.comment-body-text a {
+  color: var(--gold);
+  word-break: break-word;
+}
+
 .post-actions {
   display: flex;
   align-items: center;

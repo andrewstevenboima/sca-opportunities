@@ -55,6 +55,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       " · " + d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
   }
 
+  function linkify(escapedText) {
+    return escapedText.replace(/(https?:\/\/[^\s<]+)/g, (url) => {
+      const trailingMatch = url.match(/[).,!?;:]+$/);
+      const trailing = trailingMatch ? trailingMatch[0] : "";
+      const clean = trailing ? url.slice(0, -trailing.length) : url;
+      return `<a href="${clean}" target="_blank" rel="noopener">${clean}</a>${trailing}`;
+    });
+  }
+
   function avatarHTML(profile, sizeClass) {
     const label = escapeHTML(initials(profile?.full_name));
     if (profile?.avatar_url) {
@@ -82,7 +91,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         </div>
       </div>
       <h3 class="post-title">${escapeHTML(post.title)}</h3>
-      <p class="post-body">${escapeHTML(post.body)}</p>
+      <p class="post-body">${linkify(escapeHTML(post.body))}</p>
       <div class="post-actions">
         <button type="button" class="post-toggle-comments" data-post-id="${escapeAttr(post.id)}">Comments</button>
         ${isOwn ? `<button type="button" class="post-delete" data-post-id="${escapeAttr(post.id)}">Delete</button>` : ""}
@@ -128,7 +137,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           ${avatarHTML(author, "account-avatar--sm")}
           <div class="comment-body">
             <a href="member.html?id=${escapeAttr(comment.user_id)}" class="post-author-name">${escapeHTML(author?.full_name || "A student")}</a>
-            <p class="comment-body-text">${escapeHTML(comment.body)}</p>
+            <p class="comment-body-text">${linkify(escapeHTML(comment.body))}</p>
           </div>
         `;
         box.appendChild(row);

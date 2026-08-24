@@ -288,3 +288,14 @@
 .avatar-field .auth-hint {
   margin: var(--s-2) 0 0;
 }
+
+/* -------------------------------------------------------------
+   Mobile — auth forms (login/signup, account editing)
+   ------------------------------------------------------------- */
+@media (max-width: 640px) {
+  .auth-field input,
+  .auth-field select {
+    min-height: 44px;
+    font-size: 16px; /* prevents iOS zoom-on-focus */
+  }
+}

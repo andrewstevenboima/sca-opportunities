@@ -2,7 +2,9 @@
   "name": "SCA Opportunities",
   "short_name": "SCA Opps",
   "description": "Curated internships, jobs, fellowships, and scholarships for African undergraduate students.",
+  "id": "/",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#FDFBF5",
@@ -12,16 +14,39 @@
   "dir": "ltr",
   "icons": [
     {
-      "src": "assets/logo.png",
+      "src": "assets/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "assets/logo.png",
+      "src": "assets/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Opportunities",
+      "url": "/opportunities.html",
+      "description": "Browse curated internships, jobs, fellowships and scholarships"
+    },
+    {
+      "name": "Common Room",
+      "url": "/community.html",
+      "description": "Discuss and connect with other students"
+    },
+    {
+      "name": "CV Checker",
+      "url": "/match.html",
+      "description": "See which opportunities match your CV"
     }
   ]
 }

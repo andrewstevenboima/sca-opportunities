@@ -68,6 +68,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Notification bell (all pages)
   wireNotifications();
 
+  // Install-as-app prompt + offline support (all pages)
+  registerServiceWorker();
+  wireInstallPrompt();
+
   // Confirmation-link redirects can land on any page depending on the
   // Supabase project's configured Site URL, so this check (and the
   // flag it reads) has to run globally rather than on one page.
@@ -528,6 +532,120 @@ function wireNotifications() {
       });
     }
   });
+}
+
+/* -------------------------------------------------------------
+   Install-as-app + offline support
+   ------------------------------------------------------------- */
+function registerServiceWorker() {
+  if (!("serviceWorker" in navigator)) return;
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {
+      // Non-fatal — the site still works fully without offline support.
+    });
+  });
+}
+
+const INSTALL_DISMISS_KEY = "sca-install-dismissed-at";
+const INSTALL_DISMISS_COOLDOWN_DAYS = 14;
+
+function isRunningStandalone() {
+  return (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    window.navigator.standalone === true // iOS Safari's own flag
+  );
+}
+
+function recentlyDismissedInstallPrompt() {
+  try {
+    const dismissedAt = Number(localStorage.getItem(INSTALL_DISMISS_KEY));
+    if (!dismissedAt) return false;
+    const daysSince = (Date.now() - dismissedAt) / (1000 * 60 * 60 * 24);
+    return daysSince < INSTALL_DISMISS_COOLDOWN_DAYS;
+  } catch (err) {
+    return false;
+  }
+}
+
+function markInstallPromptDismissed() {
+  try {
+    localStorage.setItem(INSTALL_DISMISS_KEY, String(Date.now()));
+  } catch (err) {
+    // Non-fatal — worst case the banner just reappears next visit.
+  }
+}
+
+function showInstallBanner({ title, sub, actionLabel, onAction }) {
+  if (document.querySelector(".install-banner")) return; // already showing
+
+  const banner = document.createElement("div");
+  banner.className = "install-banner";
+  banner.innerHTML = `
+    <img src="assets/icon-192.png" alt="" class="install-banner-icon" />
+    <div class="install-banner-body">
+      <p class="install-banner-title">${escapeHTML(title)}</p>
+      <p class="install-banner-sub">${escapeHTML(sub)}</p>
+    </div>
+    <div class="install-banner-actions">
+      ${actionLabel ? `<button type="button" class="install-banner-btn">${escapeHTML(actionLabel)}</button>` : ""}
+      <button type="button" class="install-banner-close" aria-label="Dismiss">✕</button>
+    </div>
+  `;
+  document.body.appendChild(banner);
+
+  if (actionLabel) {
+    banner.querySelector(".install-banner-btn").addEventListener("click", onAction);
+  }
+  banner.querySelector(".install-banner-close").addEventListener("click", () => {
+    markInstallPromptDismissed();
+    banner.remove();
+  });
+
+  return banner;
+}
+
+// Chrome/Edge/Android (and desktop Chrome) fire beforeinstallprompt
+// when their own installability heuristics are met; iOS never fires
+// it at all — "Add to Home Screen" only exists as a manual step from
+// the Share sheet — so it gets its own instructional banner below.
+function wireInstallPrompt() {
+  if (isRunningStandalone() || recentlyDismissedInstallPrompt()) return;
+
+  let deferredPrompt = null;
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    deferredPrompt = event;
+    showInstallBanner({
+      title: "Install SCA Opportunities",
+      sub: "Add it to your home screen for one-tap access, even offline.",
+      actionLabel: "Install",
+      onAction: async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        document.querySelector(".install-banner")?.remove();
+      },
+    });
+  });
+
+  window.addEventListener("appinstalled", () => {
+    document.querySelector(".install-banner")?.remove();
+    markInstallPromptDismissed();
+  });
+
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  if (isIOS) {
+    showInstallBanner({
+      title: "Install SCA Opportunities",
+      sub: "Tap the Share icon below, then “Add to Home Screen.”",
+      actionLabel: "Got it",
+      onAction: () => {
+        markInstallPromptDismissed();
+        document.querySelector(".install-banner")?.remove();
+      },
+    });
+  }
 }
 
 // Mobile hamburger toggle

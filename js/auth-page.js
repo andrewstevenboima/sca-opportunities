@@ -42,7 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
   tabLogin.addEventListener("click", () => switchTab("login"));
   tabSignup.addEventListener("click", () => switchTab("signup"));
 
-  // Region -> country cascade, scoped to East & West Africa only
+  // Region -> country cascade, covering all of Africa (see js/regions.js)
   const regionSelect = document.getElementById("signup-region");
   const countrySelect = document.getElementById("signup-country");
 

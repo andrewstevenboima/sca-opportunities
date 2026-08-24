@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   let currentProfile = null;
 
-  // Region -> country cascade, same East & West Africa list used on signup
+  // Region -> country cascade, same Africa-wide list used on signup
   if (editRegion) {
     Object.keys(window.SCA_REGIONS || {}).forEach((region) => {
       const opt = document.createElement("option");

@@ -1,8 +1,10 @@
 /* =============================================================
-   SCA Opportunities — East & West Africa scope
-   Pilot region list for account signup. Job listings themselves
-   (Google Sheet data) are not restricted by this list — only who
-   can create an account is, for now.
+   SCA Opportunities — Africa-wide region/country list
+   Powers the region → country cascade on signup (login.html) and
+   profile editing (account.html). Regions follow the standard UN
+   geoscheme for Africa; job listings themselves (Google Sheet data)
+   are not restricted by this list — only what a student can select
+   for their own profile is.
    ============================================================= */
 const SCA_REGIONS = {
   "East Africa": [
@@ -15,6 +17,15 @@ const SCA_REGIONS = {
     "South Sudan",
     "Somalia",
     "Djibouti",
+    "Comoros",
+    "Eritrea",
+    "Madagascar",
+    "Malawi",
+    "Mauritius",
+    "Mozambique",
+    "Seychelles",
+    "Zambia",
+    "Zimbabwe",
   ],
   "West Africa": [
     "Nigeria",
@@ -33,6 +44,32 @@ const SCA_REGIONS = {
     "Guinea-Bissau",
     "Cabo Verde",
     "Mauritania",
+  ],
+  "North Africa": [
+    "Algeria",
+    "Egypt",
+    "Libya",
+    "Morocco",
+    "Sudan",
+    "Tunisia",
+  ],
+  "Central Africa": [
+    "Angola",
+    "Cameroon",
+    "Central African Republic",
+    "Chad",
+    "Republic of the Congo",
+    "Democratic Republic of the Congo",
+    "Equatorial Guinea",
+    "Gabon",
+    "São Tomé and Príncipe",
+  ],
+  "Southern Africa": [
+    "Botswana",
+    "Eswatini",
+    "Lesotho",
+    "Namibia",
+    "South Africa",
   ],
 };
 

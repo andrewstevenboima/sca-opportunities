@@ -12,7 +12,7 @@
 create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   full_name text,
-  region text check (region in ('East Africa', 'West Africa')),
+  region text check (region in ('East Africa', 'West Africa', 'North Africa', 'Central Africa', 'Southern Africa')),
   country text not null,
   year_of_study text,
   university text,
@@ -25,6 +25,13 @@ create table if not exists public.profiles (
 alter table public.profiles add column if not exists sex text check (sex in ('Female', 'Male', 'Prefer not to say'));
 alter table public.profiles add column if not exists date_of_birth date;
 alter table public.profiles add column if not exists avatar_url text;
+
+-- Widens the region check for databases where this table already
+-- exists from before the pilot expanded past East/West Africa
+-- (create table if not exists doesn't touch existing constraints).
+alter table public.profiles drop constraint if exists profiles_region_check;
+alter table public.profiles add constraint profiles_region_check
+  check (region in ('East Africa', 'West Africa', 'North Africa', 'Central Africa', 'Southern Africa'));
 
 alter table public.profiles enable row level security;
 

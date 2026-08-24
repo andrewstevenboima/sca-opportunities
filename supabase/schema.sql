@@ -349,6 +349,57 @@ create policy "discussion_comments_delete_own" on public.discussion_comments
 create index if not exists discussion_comments_post_id_idx on public.discussion_comments (post_id);
 
 -- ---------------------------------------------------------------
+-- reactions: emoji reactions on Common Room posts and comments.
+-- One row per (student, emoji, target) — a student can react to the
+-- same post/comment with several different emoji, but not stack the
+-- same emoji twice (that's what the two partial unique indexes below
+-- enforce; toggling is add-row/delete-row from the client, not an
+-- update). Exactly one of post_id/comment_id is set per row, the
+-- same nullable-pair-of-FKs shape already used by `notifications`
+-- above — reused here rather than two separate reactions tables
+-- since post and comment reactions behave identically.
+-- Both FKs cascade, so a deleted post or comment takes its
+-- reactions with it automatically.
+-- ---------------------------------------------------------------
+create table if not exists public.reactions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  emoji text not null check (char_length(emoji) between 1 and 8),
+  post_id uuid references public.discussion_posts (id) on delete cascade,
+  comment_id uuid references public.discussion_comments (id) on delete cascade,
+  created_at timestamptz not null default now(),
+  check (
+    (post_id is not null and comment_id is null) or
+    (post_id is null and comment_id is not null)
+  )
+);
+
+-- Partial (not plain) unique indexes: a plain multi-column unique
+-- constraint would never treat two rows as duplicates whenever
+-- either post_id or comment_id is NULL, since Postgres never
+-- considers NULL equal to NULL — these scope the uniqueness check to
+-- only the rows where that particular column is actually set.
+create unique index if not exists reactions_unique_post on public.reactions (user_id, emoji, post_id) where post_id is not null;
+create unique index if not exists reactions_unique_comment on public.reactions (user_id, emoji, comment_id) where comment_id is not null;
+
+alter table public.reactions enable row level security;
+
+drop policy if exists "reactions_select_all" on public.reactions;
+create policy "reactions_select_all" on public.reactions
+  for select using (auth.role() = 'authenticated');
+
+drop policy if exists "reactions_insert_own" on public.reactions;
+create policy "reactions_insert_own" on public.reactions
+  for insert with check (auth.uid() = user_id);
+
+drop policy if exists "reactions_delete_own" on public.reactions;
+create policy "reactions_delete_own" on public.reactions
+  for delete using (auth.uid() = user_id);
+
+create index if not exists reactions_post_id_idx on public.reactions (post_id) where post_id is not null;
+create index if not exists reactions_comment_id_idx on public.reactions (comment_id) where comment_id is not null;
+
+-- ---------------------------------------------------------------
 -- messages: private direct messages between Companions only.
 -- A student can message another student only once a Companion
 -- relationship exists between them in EITHER direction (you

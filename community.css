@@ -181,6 +181,130 @@
   font-size: 0.625rem;
 }
 
+/* -------------------------------------------------------------
+   Reactions — emoji reaction bar on posts and comments
+   ------------------------------------------------------------- */
+.reaction-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+  margin-top: var(--s-3);
+}
+
+.reaction-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.6rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--white);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  cursor: pointer;
+  color: var(--ink);
+}
+
+.reaction-pill:hover {
+  border-color: var(--gold-soft);
+}
+
+.reaction-pill.is-mine {
+  background: var(--gold-wash);
+  border-color: var(--gold);
+  font-weight: 600;
+}
+
+.reaction-pill-count {
+  color: var(--ink-mute);
+}
+
+.reaction-pill.is-mine .reaction-pill-count {
+  color: var(--ink);
+}
+
+.reaction-add-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 999px;
+  background: none;
+  cursor: pointer;
+  font-size: 0.9375rem;
+  color: var(--ink-mute);
+  line-height: 1;
+}
+
+.reaction-add-btn:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+/* -------------------------------------------------------------
+   Emoji picker — shared by post/comment/message composers and
+   the reaction "add" button above
+   ------------------------------------------------------------- */
+.composer-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.emoji-picker-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  cursor: pointer;
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.emoji-picker-btn:hover {
+  border-color: var(--gold);
+}
+
+.emoji-picker-panel {
+  position: fixed;
+  z-index: 500;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 0.15rem;
+  padding: var(--s-3);
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 12px 30px -12px rgba(26, 26, 26, 0.2);
+  max-width: 280px;
+}
+
+.emoji-picker-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+.emoji-picker-option:hover {
+  background: var(--cream);
+}
+
 .post-actions {
   display: flex;
   align-items: center;
@@ -591,6 +715,11 @@
 
   .comment-form button {
     align-self: flex-end;
+  }
+
+  .emoji-picker-panel {
+    grid-template-columns: repeat(6, 1fr);
+    max-width: 220px;
   }
 
   .member-message-hint {

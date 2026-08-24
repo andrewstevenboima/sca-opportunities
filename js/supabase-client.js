@@ -313,6 +313,62 @@ const SCA = {
     if (error) throw error;
   },
 
+  // ---- Reactions (emoji reactions on posts/comments — see schema.sql) ----
+
+  async listPostReactions(postIds) {
+    if (!sb || !postIds.length) return [];
+    const { data, error } = await sb
+      .from("reactions")
+      .select("id, post_id, user_id, emoji")
+      .in("post_id", postIds);
+    if (error) throw error;
+    return data;
+  },
+
+  async listCommentReactions(commentIds) {
+    if (!sb || !commentIds.length) return [];
+    const { data, error } = await sb
+      .from("reactions")
+      .select("id, comment_id, user_id, emoji")
+      .in("comment_id", commentIds);
+    if (error) throw error;
+    return data;
+  },
+
+  async addPostReaction(userId, postId, emoji) {
+    if (!sb) throw new Error("Supabase is not configured yet.");
+    const { error } = await sb.from("reactions").insert({ user_id: userId, post_id: postId, emoji });
+    if (error) throw error;
+  },
+
+  async removePostReaction(userId, postId, emoji) {
+    if (!sb) return;
+    const { error } = await sb
+      .from("reactions")
+      .delete()
+      .eq("user_id", userId)
+      .eq("post_id", postId)
+      .eq("emoji", emoji);
+    if (error) throw error;
+  },
+
+  async addCommentReaction(userId, commentId, emoji) {
+    if (!sb) throw new Error("Supabase is not configured yet.");
+    const { error } = await sb.from("reactions").insert({ user_id: userId, comment_id: commentId, emoji });
+    if (error) throw error;
+  },
+
+  async removeCommentReaction(userId, commentId, emoji) {
+    if (!sb) return;
+    const { error } = await sb
+      .from("reactions")
+      .delete()
+      .eq("user_id", userId)
+      .eq("comment_id", commentId)
+      .eq("emoji", emoji);
+    if (error) throw error;
+  },
+
   // ---- Private messages (Companions only — see schema.sql) ----
 
   async listConversations(userId) {

@@ -320,6 +320,18 @@ function esc(s) {
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
+// Opportunity links come from the Sheet/JSON feed rather than being
+// typed by the viewing student, but esc() alone only neutralizes HTML
+// metacharacters — it does nothing to stop a non-http(s) scheme like
+// "javascript:" from landing in a real href and running when clicked.
+// This is the actual gate on what's allowed there.
+function safeHref(url, fallback) {
+  if (typeof url === "string" && /^https?:\/\//i.test(url.trim())) {
+    return esc(url);
+  }
+  return esc(fallback);
+}
+
 const STATUS_META = {
   ready:   { label: "Open to you",   cls: "st-ready" },
   stretch: { label: "Stretch",        cls: "st-stretch" },
@@ -381,7 +393,7 @@ function cardHTML(r) {
         <h4>You already meet</h4>
         ${r.met.map((x) => `<p class="rc-item rc-i-met">${esc(x)}</p>`).join("")}
       </div>` : ""}
-      <a class="rc-apply" href="${esc(o.apply_link || "#")}" target="_blank" rel="noopener">View listing →</a>
+      <a class="rc-apply" href="${safeHref(o.apply_link, "#")}" target="_blank" rel="noopener">View listing →</a>
     </div>
 
     <button type="button" class="rc-toggle">Why? ▼</button>

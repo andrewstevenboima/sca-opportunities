@@ -322,7 +322,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const mine = rows.some((r) => r.user_id === user.id);
         return `
           <button type="button" class="reaction-pill${mine ? " is-mine" : ""}" data-emoji="${escapeAttr(emoji)}">
-            <span>${emoji}</span><span class="reaction-pill-count">${rows.length}</span>
+            <span>${escapeHTML(emoji)}</span><span class="reaction-pill-count">${rows.length}</span>
           </button>
         `;
       })

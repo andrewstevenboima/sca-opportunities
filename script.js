@@ -167,7 +167,7 @@ async function loadHomepagePreview() {
         <span class="home-preview-cat">${escapeHTML(o.category || "Opportunity")}</span>
         <h3>${escapeHTML(o.title || "Untitled")}</h3>
         ${o.organization ? `<p>${escapeHTML(o.organization)}</p>` : ""}
-        <a href="${escapeAttr(o.apply_link || "opportunities.html")}" target="_blank" rel="noopener" class="opp-apply">Apply →</a>
+        <a href="${safeHref(o.apply_link, "opportunities.html")}" target="_blank" rel="noopener" class="opp-apply">Apply →</a>
       </article>
     `
       )
@@ -402,7 +402,12 @@ function wireNotifications() {
     }
   }
 
-  function messageFor(n, actorName) {
+  function messageFor(n, rawActorName) {
+    // rawActorName is another student's full_name — free text they
+    // chose at signup, not app-controlled — so it must be escaped
+    // before landing in the innerHTML this feeds below, same as
+    // every other rendering of a student's name in this app.
+    const actorName = escapeHTML(rawActorName);
     switch (n.type) {
       case "mention_post":
         return `${actorName} mentioned you in a post`;
@@ -911,7 +916,7 @@ function cardHTML(o, i) {
       }
 
       <div class="opp-actions">
-        <a href="${escapeAttr(o.apply_link || "#")}" target="_blank" rel="noopener" class="opp-apply">
+        <a href="${safeHref(o.apply_link, "#")}" target="_blank" rel="noopener" class="opp-apply">
           Apply →
         </a>
       </div>
@@ -1197,6 +1202,18 @@ function escapeHTML(str) {
 
 function escapeAttr(str) {
   return escapeHTML(str);
+}
+
+// Opportunity links come from the Sheet/JSON feed rather than being
+// typed by the viewing student, but escapeAttr alone only neutralizes
+// HTML metacharacters — it does nothing to stop a non-http(s) scheme
+// like "javascript:" from landing in a real href and running when
+// clicked. This is the actual gate on what's allowed there.
+function safeHref(url, fallback) {
+  if (typeof url === "string" && /^https?:\/\//i.test(url.trim())) {
+    return escapeAttr(url);
+  }
+  return escapeAttr(fallback);
 }
 
 function isDeadlinePassed(deadline) {

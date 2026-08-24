@@ -217,7 +217,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           <h3>${escapeHTML(o.title || "Untitled")}</h3>
           ${o.organization ? `<p>${escapeHTML(o.organization)}${o.location ? ` · ${escapeHTML(o.location)}` : ""}</p>` : ""}
           <div class="saved-card-actions">
-            <a href="${escapeAttr(o.apply_link || "opportunities.html")}" target="_blank" rel="noopener" class="opp-apply">Apply →</a>
+            <a href="${safeHref(o.apply_link, "opportunities.html")}" target="_blank" rel="noopener" class="opp-apply">Apply →</a>
           </div>
         </article>
       `
@@ -312,7 +312,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         <h3>${escapeHTML(b.opportunity_title || "Saved opportunity")}</h3>
         ${b.opportunity_org ? `<p>${escapeHTML(b.opportunity_org)}</p>` : ""}
         <div class="saved-card-actions">
-          <a href="${escapeAttr(b.opportunity_apply_link || "opportunities.html")}" target="_blank" rel="noopener" class="opp-apply">Apply →</a>
+          <a href="${safeHref(b.opportunity_apply_link, "opportunities.html")}" target="_blank" rel="noopener" class="opp-apply">Apply →</a>
           <button class="saved-remove" data-id="${escapeAttr(b.opportunity_id)}">Remove</button>
         </div>
       </article>
@@ -347,5 +347,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   function escapeAttr(str) {
     return escapeHTML(str);
+  }
+
+  // Opportunity links come from the Sheet/JSON feed (or a bookmark
+  // copied from it) rather than being typed by the viewing student,
+  // but escapeAttr alone only neutralizes HTML metacharacters — it
+  // does nothing to stop a non-http(s) scheme like "javascript:" from
+  // landing in a real href and running when clicked. This is the
+  // actual gate on what's allowed there.
+  function safeHref(url, fallback) {
+    if (typeof url === "string" && /^https?:\/\//i.test(url.trim())) {
+      return escapeAttr(url);
+    }
+    return escapeAttr(fallback);
   }
 });

@@ -11,11 +11,11 @@
 -- ---------------------------------------------------------------
 create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
-  full_name text,
+  full_name text check (full_name is null or char_length(full_name) <= 150),
   region text check (region in ('East Africa', 'West Africa', 'North Africa', 'Central Africa', 'Southern Africa')),
-  country text not null,
+  country text not null check (char_length(country) <= 100),
   year_of_study text,
-  university text,
+  university text check (university is null or char_length(university) <= 200),
   sex text check (sex in ('Female', 'Male', 'Prefer not to say')),
   date_of_birth date,
   avatar_url text,
@@ -32,6 +32,22 @@ alter table public.profiles add column if not exists avatar_url text;
 alter table public.profiles drop constraint if exists profiles_region_check;
 alter table public.profiles add constraint profiles_region_check
   check (region in ('East Africa', 'West Africa', 'North Africa', 'Central Africa', 'Southern Africa'));
+
+-- Security hardening: profiles.full_name/university/country had no
+-- length limit, unlike every other free-text column in this schema
+-- (post/comment/message bodies all cap out). Signup writes these
+-- straight from auth metadata with no server-side bound, so an
+-- oversized value was previously possible. Widens for databases
+-- from before this was added.
+alter table public.profiles drop constraint if exists profiles_full_name_check;
+alter table public.profiles add constraint profiles_full_name_check
+  check (full_name is null or char_length(full_name) <= 150);
+alter table public.profiles drop constraint if exists profiles_university_check;
+alter table public.profiles add constraint profiles_university_check
+  check (university is null or char_length(university) <= 200);
+alter table public.profiles drop constraint if exists profiles_country_check;
+alter table public.profiles add constraint profiles_country_check
+  check (char_length(country) <= 100);
 
 alter table public.profiles enable row level security;
 
@@ -60,10 +76,18 @@ create table if not exists public.bookmarks (
   opportunity_id text not null,
   opportunity_title text,
   opportunity_org text,
-  opportunity_apply_link text,
+  opportunity_apply_link text check (opportunity_apply_link is null or opportunity_apply_link ~* '^https?://'),
   created_at timestamptz not null default now(),
   unique (user_id, opportunity_id)
 );
+
+-- Widens for databases where this table already exists — without
+-- it, a bookmark saved straight through the API (bypassing the app's
+-- own UI, which only ever sends real http(s) links) could carry a
+-- javascript: URI that the account page later renders as an <a href>.
+alter table public.bookmarks drop constraint if exists bookmarks_opportunity_apply_link_check;
+alter table public.bookmarks add constraint bookmarks_opportunity_apply_link_check
+  check (opportunity_apply_link is null or opportunity_apply_link ~* '^https?://');
 
 alter table public.bookmarks enable row level security;
 
@@ -83,10 +107,23 @@ create policy "bookmarks_delete_own" on public.bookmarks
 -- avatars: Storage bucket for profile photos. Public read (so
 -- <img> tags can just load the URL directly), but a student can
 -- only write inside their own "<user_id>/…" folder.
+--
+-- file_size_limit and allowed_mime_types are enforced by Supabase
+-- Storage itself at upload time (belt), and the insert/update
+-- policies below additionally restrict the file extension in the
+-- object's path (suspenders) — the client already sends a matching
+-- mimetype (js/supabase-client.js uploadAvatar), but mimetype is
+-- client-supplied metadata and not something RLS can trust, so the
+-- extension check is the actual enforceable control here. Together
+-- these stop an arbitrary file type (e.g. .svg or .html, which could
+-- carry a script when opened directly) from landing in a public
+-- bucket under an "avatar" URL.
 -- ---------------------------------------------------------------
-insert into storage.buckets (id, name, public)
-values ('avatars', 'avatars', true)
-on conflict (id) do nothing;
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('avatars', 'avatars', true, 2097152, array['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
+on conflict (id) do update set
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
 
 drop policy if exists "avatars_public_read" on storage.objects;
 create policy "avatars_public_read" on storage.objects
@@ -94,11 +131,19 @@ create policy "avatars_public_read" on storage.objects
 
 drop policy if exists "avatars_insert_own" on storage.objects;
 create policy "avatars_insert_own" on storage.objects
-  for insert with check (bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]);
+  for insert with check (
+    bucket_id = 'avatars'
+    and auth.uid()::text = (storage.foldername(name))[1]
+    and lower(storage.extension(name)) in ('jpg', 'jpeg', 'png', 'webp', 'gif')
+  );
 
 drop policy if exists "avatars_update_own" on storage.objects;
 create policy "avatars_update_own" on storage.objects
-  for update using (bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]);
+  for update using (
+    bucket_id = 'avatars'
+    and auth.uid()::text = (storage.foldername(name))[1]
+    and lower(storage.extension(name)) in ('jpg', 'jpeg', 'png', 'webp', 'gif')
+  );
 
 drop policy if exists "avatars_delete_own" on storage.objects;
 create policy "avatars_delete_own" on storage.objects
@@ -233,11 +278,16 @@ grant execute on function public.get_latest_post_teaser() to anon, authenticated
 -- ---------------------------------------------------------------
 -- notifications: created client-side whenever a post or comment
 -- mentions a student (@Full Name) or broadcasts to everyone (@all).
--- The insert policy allows any signed-in student to create a
--- notification row for ANY recipient as long as they are the actor
--- (auth.uid() = actor_id) — this is what lets a mention notify
--- someone other than the person creating the row, the same pattern
--- already used for companions/discussion tables in this schema.
+-- The insert policy lets any signed-in student create a notification
+-- row for ANY recipient as long as they are the actor (auth.uid() =
+-- actor_id) — that's what lets a mention notify someone other than
+-- the person creating the row. On its own, though, that check alone
+-- would let anyone spam or spoof any other student with fake
+-- "mentioned you" / "added you as a Companion" notifications
+-- referencing content that has nothing to do with them (auth.uid() =
+-- actor_id says who's creating the row, not that the row reflects
+-- something the actor actually did) — the insert policy below closes
+-- that by requiring each type to be backed by real, matching activity.
 -- ---------------------------------------------------------------
 create table if not exists public.notifications (
   id uuid primary key default gen_random_uuid(),
@@ -265,7 +315,36 @@ create policy "notifications_select_own" on public.notifications
 
 drop policy if exists "notifications_insert_as_actor" on public.notifications;
 create policy "notifications_insert_as_actor" on public.notifications
-  for insert with check (auth.uid() = actor_id);
+  for insert with check (
+    auth.uid() = actor_id
+    and recipient_id <> actor_id
+    and (
+      (
+        -- A post mention: the referenced post must actually be one
+        -- the actor authored (matches notifyMentions() being called
+        -- right after the actor's own createPost()).
+        type in ('mention_post', 'mention_all_post')
+        and post_id is not null and comment_id is null
+        and exists (select 1 from public.discussion_posts p where p.id = post_id and p.user_id = actor_id)
+      )
+      or (
+        -- A comment mention: same idea, for the actor's own comment.
+        type in ('mention_comment', 'mention_all_comment')
+        and comment_id is not null
+        and exists (select 1 from public.discussion_comments c where c.id = comment_id and c.user_id = actor_id)
+      )
+      or (
+        -- A companion_added notice can only fire if the actor is
+        -- actually that recipient's companion.
+        type = 'companion_added'
+        and post_id is null and comment_id is null
+        and exists (
+          select 1 from public.companions co
+          where co.companion_id = actor_id and co.companioned_id = recipient_id
+        )
+      )
+    )
+  );
 
 drop policy if exists "notifications_update_own" on public.notifications;
 create policy "notifications_update_own" on public.notifications
@@ -445,6 +524,34 @@ create policy "messages_insert_companions" on public.messages
 drop policy if exists "messages_update_mark_read" on public.messages;
 create policy "messages_update_mark_read" on public.messages
   for update using (auth.uid() = recipient_id) with check (auth.uid() = recipient_id);
+
+-- The policy above only constrains WHO can update a row (its
+-- recipient) — RLS has no notion of "only this column may change",
+-- so on its own it would let a recipient rewrite body/sender_id
+-- through the same call js/messages.js uses to mark a thread read.
+-- Because a message is one shared row visible to both parties, that
+-- would let a recipient silently rewrite what the SENDER also sees
+-- was said in their own conversation. This trigger is the actual
+-- enforcement: only read_at is allowed to change.
+create or replace function public.protect_message_fields()
+returns trigger
+language plpgsql
+as $$
+begin
+  if new.sender_id <> old.sender_id
+     or new.recipient_id <> old.recipient_id
+     or new.body <> old.body
+     or new.created_at <> old.created_at then
+    raise exception 'Only read_at may be updated on messages.';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists messages_protect_fields on public.messages;
+create trigger messages_protect_fields
+  before update on public.messages
+  for each row execute function public.protect_message_fields();
 
 create index if not exists messages_sender_recipient_idx on public.messages (sender_id, recipient_id, created_at);
 create index if not exists messages_recipient_sender_idx on public.messages (recipient_id, sender_id, created_at);

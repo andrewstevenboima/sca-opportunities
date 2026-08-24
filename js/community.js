@@ -9,10 +9,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   const postForm = document.getElementById("form-new-post");
   const postTitle = document.getElementById("post-title");
   const postBody = document.getElementById("post-body");
+  const postBodyEmojiBtn = document.getElementById("post-body-emoji-btn");
   const postError = document.getElementById("new-post-error");
   const postSubmit = document.getElementById("new-post-submit");
   const postsList = document.getElementById("posts-list");
   const postsEmpty = document.getElementById("posts-empty");
+
+  // post_id/comment_id -> array of { id, user_id, emoji } — populated
+  // in batch whenever posts/comments load, then read from and
+  // patched in place as the student adds/removes their own reactions.
+  const reactionsByPost = new Map();
+  const reactionsByComment = new Map();
 
   if (!window.SCA || !window.SCA.ready) {
     signedOutBox.hidden = false;
@@ -298,6 +305,95 @@ document.addEventListener("DOMContentLoaded", async () => {
     return `<div class="account-avatar ${sizeClass}"><span>${label}</span></div>`;
   }
 
+  // ---- Reactions ----
+
+  function renderReactionBar(targetType, targetId, container) {
+    const store = targetType === "post" ? reactionsByPost : reactionsByComment;
+    const reactions = store.get(targetId) || [];
+
+    const byEmoji = new Map();
+    for (const r of reactions) {
+      if (!byEmoji.has(r.emoji)) byEmoji.set(r.emoji, []);
+      byEmoji.get(r.emoji).push(r);
+    }
+
+    const pills = Array.from(byEmoji.entries())
+      .map(([emoji, rows]) => {
+        const mine = rows.some((r) => r.user_id === user.id);
+        return `
+          <button type="button" class="reaction-pill${mine ? " is-mine" : ""}" data-emoji="${escapeAttr(emoji)}">
+            <span>${emoji}</span><span class="reaction-pill-count">${rows.length}</span>
+          </button>
+        `;
+      })
+      .join("");
+
+    container.innerHTML = `${pills}<button type="button" class="reaction-add-btn" aria-label="Add reaction">🙂+</button>`;
+
+    container.querySelectorAll(".reaction-pill").forEach((btn) => {
+      btn.addEventListener("click", () => toggleReaction(targetType, targetId, btn.dataset.emoji, container));
+    });
+
+    const addBtn = container.querySelector(".reaction-add-btn");
+    if (typeof window.attachEmojiPickerButton === "function") {
+      attachEmojiPickerButton(addBtn, (emoji) => toggleReaction(targetType, targetId, emoji, container));
+    }
+  }
+
+  async function toggleReaction(targetType, targetId, emoji, container) {
+    const store = targetType === "post" ? reactionsByPost : reactionsByComment;
+    const reactions = store.get(targetId) || [];
+    const mine = reactions.find((r) => r.user_id === user.id && r.emoji === emoji);
+
+    // Optimistic: update the local cache and re-render immediately,
+    // then roll back if the request fails.
+    if (mine) {
+      store.set(targetId, reactions.filter((r) => r !== mine));
+      renderReactionBar(targetType, targetId, container);
+      try {
+        if (targetType === "post") await window.SCA.removePostReaction(user.id, targetId, emoji);
+        else await window.SCA.removeCommentReaction(user.id, targetId, emoji);
+      } catch (err) {
+        reactions.push(mine);
+        store.set(targetId, reactions);
+        renderReactionBar(targetType, targetId, container);
+      }
+    } else {
+      const optimisticRow = { id: `pending-${Date.now()}`, user_id: user.id, emoji };
+      store.set(targetId, [...reactions, optimisticRow]);
+      renderReactionBar(targetType, targetId, container);
+      try {
+        if (targetType === "post") await window.SCA.addPostReaction(user.id, targetId, emoji);
+        else await window.SCA.addCommentReaction(user.id, targetId, emoji);
+      } catch (err) {
+        store.set(targetId, (store.get(targetId) || []).filter((r) => r !== optimisticRow));
+        renderReactionBar(targetType, targetId, container);
+      }
+    }
+  }
+
+  async function loadReactionsForPosts(postIds) {
+    if (!postIds.length) return;
+    try {
+      const rows = await window.SCA.listPostReactions(postIds);
+      for (const id of postIds) reactionsByPost.set(id, []);
+      for (const row of rows) reactionsByPost.get(row.post_id).push(row);
+    } catch (err) {
+      // Reaction bars just render empty — not worth blocking the feed over.
+    }
+  }
+
+  async function loadReactionsForComments(commentIds) {
+    if (!commentIds.length) return;
+    try {
+      const rows = await window.SCA.listCommentReactions(commentIds);
+      for (const id of commentIds) reactionsByComment.set(id, []);
+      for (const row of rows) reactionsByComment.get(row.comment_id).push(row);
+    } catch (err) {
+      // Reaction bars just render empty — not worth blocking the thread over.
+    }
+  }
+
   async function renderPostCard(post) {
     const author = await getAuthor(post.user_id);
     const name = author?.full_name || "A student";
@@ -318,6 +414,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       </div>
       <h3 class="post-title">${escapeHTML(post.title)}</h3>
       <p class="post-body">${linkify(renderAllMention(renderMentions(escapeHTML(post.body), await getAllProfiles())))}</p>
+      <div class="reaction-bar" data-target-type="post" data-target-id="${escapeAttr(post.id)}"></div>
       <div class="post-actions">
         <button type="button" class="post-toggle-comments" data-post-id="${escapeAttr(post.id)}">Comments</button>
         <button type="button" class="post-share" data-post-id="${escapeAttr(post.id)}">Share</button>
@@ -326,6 +423,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       <div class="post-comments" hidden></div>
     `;
 
+    renderReactionBar("post", post.id, card.querySelector(".reaction-bar"));
     card.querySelector(".post-toggle-comments").addEventListener("click", () => toggleComments(card, post.id));
     const shareBtn = card.querySelector(".post-share");
     shareBtn.addEventListener("click", () => {
@@ -364,6 +462,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       box.innerHTML = "";
 
       const profiles = await getAllProfiles();
+      await loadReactionsForComments(comments.map((c) => c.id));
       for (const comment of comments) {
         const author = await getAuthor(comment.user_id);
         const row = document.createElement("div");
@@ -374,9 +473,11 @@ document.addEventListener("DOMContentLoaded", async () => {
           <div class="comment-body">
             <a href="member.html?id=${escapeAttr(comment.user_id)}" class="post-author-name">${escapeHTML(commentAuthorName)}</a>
             <p class="comment-body-text">${linkify(renderAllMention(renderMentions(escapeHTML(comment.body), profiles)))}</p>
+            <div class="reaction-bar" data-target-type="comment" data-target-id="${escapeAttr(comment.id)}"></div>
             <button type="button" class="comment-share">Share</button>
           </div>
         `;
+        renderReactionBar("comment", comment.id, row.querySelector(".reaction-bar"));
         row.querySelector(".comment-share").addEventListener("click", (e) => {
           shareContent(e.currentTarget, {
             url: `${window.location.origin}/community.html?post=${encodeURIComponent(postId)}`,
@@ -390,9 +491,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       form.className = "comment-form";
       form.innerHTML = `
         <input type="text" placeholder="Write a reply… use @ to mention someone" maxlength="2000" required />
+        <button type="button" class="emoji-picker-btn" aria-label="Add emoji">🙂</button>
         <button type="submit" class="btn btn-ghost">Reply</button>
       `;
       attachMentionAutocomplete(form.querySelector("input"));
+      if (typeof window.attachEmojiPicker === "function") {
+        attachEmojiPicker(form.querySelector(".emoji-picker-btn"), form.querySelector("input"));
+      }
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
         const input = form.querySelector("input");
@@ -421,6 +526,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         postsEmpty.hidden = false;
         return;
       }
+      await loadReactionsForPosts(posts.map((p) => p.id));
       postsList.innerHTML = "";
       for (const post of posts) {
         postsList.appendChild(await renderPostCard(post));
@@ -470,6 +576,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   attachMentionAutocomplete(postBody);
+  if (postBodyEmojiBtn && typeof window.attachEmojiPicker === "function") {
+    attachEmojiPicker(postBodyEmojiBtn, postBody);
+  }
   getAllProfiles();
   loadPosts();
 

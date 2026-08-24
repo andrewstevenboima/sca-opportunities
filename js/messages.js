@@ -19,6 +19,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const threadMessages = document.getElementById("thread-messages");
   const threadForm = document.getElementById("thread-form");
   const threadInput = document.getElementById("thread-input");
+  const threadEmojiBtn = document.getElementById("thread-emoji-btn");
 
   if (!window.SCA || !window.SCA.ready) {
     signedOutBox.hidden = false;
@@ -218,6 +219,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       submitBtn.disabled = false;
     }
   });
+
+  if (threadEmojiBtn && typeof window.attachEmojiPicker === "function") {
+    attachEmojiPicker(threadEmojiBtn, threadInput);
+  }
 
   await loadConversations();
 

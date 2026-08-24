@@ -111,7 +111,10 @@
           <textarea id="post-body" rows="3" maxlength="5000" required placeholder="Share the details… type @ to mention a student"></textarea>
         </div>
         <div class="auth-error" id="new-post-error" role="alert"></div>
-        <button type="submit" class="btn btn-primary" id="new-post-submit">Post to the Common Room</button>
+        <div class="composer-toolbar">
+          <button type="button" class="emoji-picker-btn" id="post-body-emoji-btn" aria-label="Add emoji">🙂</button>
+          <button type="submit" class="btn btn-primary" id="new-post-submit">Post to the Common Room</button>
+        </div>
       </form>
 
       <div class="posts-list" id="posts-list"></div>
@@ -160,6 +163,7 @@
   <script src="js/regions.js"></script>
   <script src="js/supabase-client.js"></script>
   <script src="script.js"></script>
+  <script src="js/emoji-picker.js"></script>
   <script src="js/community.js"></script>
 </body>
 </html>

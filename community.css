@@ -692,6 +692,15 @@
     padding: var(--s-4);
   }
 
+  .new-post-card textarea,
+  .comment-form input {
+    font-size: 16px; /* prevents iOS zoom-on-focus */
+  }
+
+  .comment-form input {
+    min-height: 44px;
+  }
+
   .post-card {
     padding: var(--s-4);
   }
@@ -774,5 +783,14 @@
 
   .thread-bubble {
     max-width: 85%;
+  }
+
+  .thread-form input {
+    min-height: 44px;
+    font-size: 16px; /* prevents iOS zoom-on-focus */
+  }
+
+  .thread-form {
+    padding-bottom: calc(var(--s-4) + env(safe-area-inset-bottom));
   }
 }

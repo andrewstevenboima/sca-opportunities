@@ -68,6 +68,11 @@
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  /* Needs to be here, not just on body: a position:fixed element
+     (the off-canvas nav drawer below) is clipped by the viewport's
+     own overflow, not its parent box's — setting this only on body
+     does nothing for a fixed element bleeding past the edge. */
+  overflow-x: hidden;
 }
 
 body {
@@ -79,6 +84,29 @@ body {
   background: var(--white);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* The off-canvas mobile nav drawer sits at right:0 with a real
+     320px width before its translateX(100%) slides it out of view —
+     transforms don't change layout, so without this every page was
+     710px wide (390px viewport + the drawer's own width) on mobile,
+     letting a stray horizontal swipe reveal blank space past the
+     right edge. Scoped overflow-x:auto containers (e.g. wide tables)
+     are unaffected — this only clips the document's own axis. */
+  overflow-x: hidden;
+  /* Stops an overscrolled swipe at the top/bottom of the page from
+     chaining into the browser's own pull-to-refresh/rubber-band —
+     one of the most obvious "this is just a website" tells on
+     mobile once installed and running standalone. */
+  overscroll-behavior-y: none;
+  /* Removes the gray tap-flash Chrome/Android draws on every link
+     and button by default — native apps don't have it, and with it
+     every tap reads as "web page" instead of "app". */
+  -webkit-tap-highlight-color: transparent;
+}
+
+a, button, [role="button"], input, select, textarea {
+  /* Skips the ~300ms double-tap-to-zoom delay on touch, so taps feel
+     immediate rather than laggy. */
+  touch-action: manipulation;
 }
 
 img {
@@ -225,6 +253,12 @@ em { font-style: italic; color: var(--gold); }
   backdrop-filter: saturate(180%) blur(12px);
   -webkit-backdrop-filter: saturate(180%) blur(12px);
   border-bottom: 1px solid var(--line);
+  /* Installed on iOS with a translucent status bar (see
+     apple-mobile-web-app-status-bar-style), page content draws
+     underneath it — without this the logo/nav would sit right up
+     against (or under) the status bar. A no-op in the regular
+     browser, where this env() value is just 0. */
+  padding-top: env(safe-area-inset-top);
 }
 
 .header-inner {
@@ -1704,6 +1738,8 @@ em { font-style: italic; color: var(--gold); }
     align-items: stretch;
     gap: 0;
     padding: var(--s-6) var(--s-5);
+    padding-top: calc(var(--s-6) + env(safe-area-inset-top));
+    padding-bottom: calc(var(--s-5) + env(safe-area-inset-bottom));
     box-shadow: -12px 0 40px rgba(0, 0, 0, 0.18);
     transform: translateX(100%);
     transition: transform 0.3s var(--ease);
@@ -2479,7 +2515,7 @@ em { font-style: italic; color: var(--gold); }
 .rc-field select {
   width: 100%; min-height: 44px; padding: 0.5rem 0.7rem;
   border: 1px solid rgba(0,0,0,0.15); border-radius: 6px;
-  font-family: var(--font-body); font-size: 0.95rem; background: #fff;
+  font-family: var(--font-body); font-size: 1rem; background: #fff;
 }
 .rc-field select:focus { outline: none; border-color: var(--gold); }
 
@@ -2603,3 +2639,108 @@ em { font-style: italic; color: var(--gold); }
 .rc-card { padding: 1.1rem 1.25rem; }
 .rc-bar { margin-bottom: 0.2rem; }
 .rc-toggle { margin-top: 0.7rem; }
+
+/* -------------------------------------------------------------
+   Install-as-app banner (script.js wireInstallPrompt)
+   ------------------------------------------------------------- */
+.install-banner {
+  position: fixed;
+  left: 50%;
+  bottom: var(--s-4);
+  transform: translateX(-50%);
+  z-index: 950;
+  width: min(560px, calc(100% - var(--s-4) * 2));
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  background: var(--ink);
+  color: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.55);
+  padding: var(--s-4);
+  padding-bottom: calc(var(--s-4) + env(safe-area-inset-bottom));
+  animation: install-banner-in var(--dur) var(--ease);
+}
+
+@keyframes install-banner-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .install-banner { animation: none; }
+}
+
+.install-banner-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius);
+  flex-shrink: 0;
+  object-fit: cover;
+}
+
+.install-banner-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.install-banner-title {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  margin: 0;
+  color: var(--white);
+}
+
+.install-banner-sub {
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 2px 0 0;
+}
+
+.install-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  flex-shrink: 0;
+}
+
+.install-banner-btn {
+  background: var(--gold-bright);
+  color: var(--ink);
+  border: none;
+  border-radius: 999px;
+  padding: 0.5rem 1rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.install-banner-btn:hover {
+  background: var(--gold-soft);
+}
+
+.install-banner-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: var(--s-2);
+}
+
+.install-banner-close:hover {
+  color: var(--white);
+}
+
+@media (max-width: 480px) {
+  .install-banner {
+    flex-wrap: wrap;
+  }
+  .install-banner-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

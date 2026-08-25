@@ -4,6 +4,7 @@
   "opportunities": [
     {
       "id": "mcf-scholars-2026",
+      "date_added": "2026-08-20",
       "category": "Scholarships",
       "title": "Mastercard Foundation Scholars Program",
       "organization": "Mastercard Foundation",
@@ -21,6 +22,7 @@
     },
     {
       "id": "chevening-2026",
+      "date_added": "2026-08-24",
       "category": "Scholarships",
       "title": "Chevening Scholarships — UK Masters",
       "organization": "UK Government (FCDO)",
@@ -38,6 +40,7 @@
     },
     {
       "id": "daad-epos-2026",
+      "date_added": "2026-07-30",
       "category": "Scholarships",
       "title": "DAAD EPOS Development-Related Masters",
       "organization": "German Academic Exchange Service (DAAD)",
@@ -55,6 +58,7 @@
     },
     {
       "id": "commonwealth-2026",
+      "date_added": "2026-08-15",
       "category": "Scholarships",
       "title": "Commonwealth Shared Scholarships",
       "organization": "Commonwealth Scholarship Commission",
@@ -72,6 +76,7 @@
     },
     {
       "id": "erasmus-mundus-2026",
+      "date_added": "2026-06-18",
       "category": "Scholarships",
       "title": "Erasmus Mundus Joint Masters",
       "organization": "European Commission",
@@ -89,6 +94,7 @@
     },
     {
       "id": "un-millennium-2026",
+      "date_added": "2026-08-22",
       "category": "Fellowships",
       "title": "UN Millennium Fellowship",
       "organization": "UN Academic Impact & MCN",
@@ -106,6 +112,7 @@
     },
     {
       "id": "mwf-2026",
+      "date_added": "2026-08-01",
       "category": "Fellowships",
       "title": "Mandela Washington Fellowship for Young African Leaders",
       "organization": "US State Department (YALI)",
@@ -123,6 +130,7 @@
     },
     {
       "id": "obama-leaders-2026",
+      "date_added": "2026-07-12",
       "category": "Fellowships",
       "title": "Obama Foundation Leaders Africa",
       "organization": "Obama Foundation",
@@ -140,6 +148,7 @@
     },
     {
       "id": "ashoka-venturer-2026",
+      "date_added": "2026-05-29",
       "category": "Fellowships",
       "title": "Ashoka Youth Venturer",
       "organization": "Ashoka",
@@ -157,6 +166,7 @@
     },
     {
       "id": "rise-2026",
+      "date_added": "2026-08-10",
       "category": "Fellowships",
       "title": "Rise — Schmidt Futures & Rhodes Trust",
       "organization": "Rise (Schmidt Futures + Rhodes Trust)",
@@ -174,6 +184,7 @@
     },
     {
       "id": "one-young-world-2026",
+      "date_added": "2026-07-04",
       "category": "Fellowships",
       "title": "One Young World Summit Scholarships",
       "organization": "One Young World",
@@ -191,6 +202,7 @@
     },
     {
       "id": "google-step-2026",
+      "date_added": "2026-08-25",
       "category": "Internships",
       "title": "Google STEP Internship",
       "organization": "Google",
@@ -208,6 +220,7 @@
     },
     {
       "id": "microsoft-leap-2026",
+      "date_added": "2026-08-19",
       "category": "Internships",
       "title": "Microsoft LEAP Apprenticeship",
       "organization": "Microsoft",
@@ -225,6 +238,7 @@
     },
     {
       "id": "gsoc-2026",
+      "date_added": "2026-07-22",
       "category": "Internships",
       "title": "Google Summer of Code",
       "organization": "Google",
@@ -242,6 +256,7 @@
     },
     {
       "id": "un-internship-remote-2026",
+      "date_added": "2026-06-30",
       "category": "Internships",
       "title": "UN Remote Internship Programme",
       "organization": "United Nations",
@@ -259,6 +274,7 @@
     },
     {
       "id": "andela-learning-2026",
+      "date_added": "2026-08-05",
       "category": "Internships",
       "title": "Andela Technical Leadership Program",
       "organization": "Andela",
@@ -276,6 +292,7 @@
     },
     {
       "id": "alx-software-2026",
+      "date_added": "2026-07-27",
       "category": "Jobs",
       "title": "ALX Software Engineering Program",
       "organization": "ALX (African Leadership International)",
@@ -293,6 +310,7 @@
     },
     {
       "id": "alu-careers-graduate-2026",
+      "date_added": "2026-08-13",
       "category": "Jobs",
       "title": "Graduate Roles at ALU / Center for Re-Imagined Africa",
       "organization": "African Leadership University",
@@ -310,6 +328,7 @@
     },
     {
       "id": "devex-entry-africa-2026",
+      "date_added": "2026-06-09",
       "category": "Jobs",
       "title": "Entry-Level Development Sector Roles",
       "organization": "Various (UN, NGOs, Consultancies)",
@@ -327,6 +346,7 @@
     },
     {
       "id": "hult-prize-2026",
+      "date_added": "2026-08-08",
       "category": "Competitions",
       "title": "Hult Prize — Student Social Entrepreneurship Challenge",
       "organization": "Hult Prize Foundation",
@@ -344,6 +364,7 @@
     },
     {
       "id": "anzisha-2026",
+      "date_added": "2026-05-14",
       "category": "Competitions",
       "title": "Anzisha Prize for Young African Entrepreneurs",
       "organization": "African Leadership Academy & Mastercard Foundation",
@@ -361,6 +382,7 @@
     },
     {
       "id": "tef-entrepreneurship-2026",
+      "date_added": "2026-07-17",
       "category": "Competitions",
       "title": "Tony Elumelu Foundation Entrepreneurship Programme",
       "organization": "Tony Elumelu Foundation",
@@ -378,6 +400,7 @@
     },
     {
       "id": "africa-business-heroes-2026",
+      "date_added": "2026-06-25",
       "category": "Competitions",
       "title": "Africa's Business Heroes",
       "organization": "Jack Ma Foundation",

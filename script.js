@@ -15,6 +15,30 @@ const FALLBACK_JSON = "opportunities.json";
 // scheduled scraper that regenerates the Sheet, nothing needs to
 // change here. The frontend always reads the latest rows.
 
+// Opportunities are prioritized by how recently they were added to
+// the platform. That relies on a "date_added" column existing in the
+// Sheet (Code.gs passes any column through verbatim by header name —
+// see getOpportunities() there) — accepts a couple of common aliases
+// in case the column ends up named slightly differently. Rows without
+// a parseable date sort after every dated row, in their original
+// (Sheet) order, rather than being scattered randomly or crashing.
+const RECENCY_FIELD_ALIASES = ["date_added", "posted_date", "date_posted", "added_at"];
+function recencyTimestamp(o) {
+  for (const field of RECENCY_FIELD_ALIASES) {
+    if (o[field]) {
+      const t = new Date(o[field]).getTime();
+      if (!Number.isNaN(t)) return t;
+    }
+  }
+  return -Infinity;
+}
+function sortByRecency(list) {
+  // Array.prototype.sort is a stable sort in every modern engine, so
+  // undated rows (all tied at -Infinity) keep their original relative
+  // order instead of being shuffled.
+  return [...list].sort((a, b) => recencyTimestamp(b) - recencyTimestamp(a));
+}
+
 /* -------------------------------------------------------------
    State
    ------------------------------------------------------------- */
@@ -158,8 +182,10 @@ async function loadHomepagePreview() {
       data = await res.json();
     }
 
-    const list = (Array.isArray(data) ? data : data.opportunities || []).filter(
-      (o) => (o.status || "live").toLowerCase() === "live"
+    const list = sortByRecency(
+      (Array.isArray(data) ? data : data.opportunities || []).filter(
+        (o) => (o.status || "live").toLowerCase() === "live"
+      )
     );
     const picks = list.slice(0, 4);
     if (!picks.length) return;
@@ -755,7 +781,7 @@ async function loadOpportunities() {
     const list = Array.isArray(data) ? data : data.opportunities || [];
     const updated = Array.isArray(data) ? null : data.updated;
 
-    state.all = list.filter((o) => (o.status || "live").toLowerCase() === "live");
+    state.all = sortByRecency(list.filter((o) => (o.status || "live").toLowerCase() === "live"));
 
     // Update hero stats (only present on homepage — safe null-check)
     if (statCount) statCount.textContent = state.all.length;

@@ -120,10 +120,19 @@
           </div>
           <div class="thread-messages" id="thread-messages"></div>
           <form class="thread-form" id="thread-form">
-            <button type="button" class="link-picker-btn" id="thread-link-btn" aria-label="Add link">🔗</button>
-            <button type="button" class="emoji-picker-btn" id="thread-emoji-btn" aria-label="Add emoji">🙂</button>
-            <input type="text" id="thread-input" placeholder="Write a message…" maxlength="2000" required autocomplete="off" />
-            <button type="submit" class="btn btn-primary">Send</button>
+            <div class="composer-toolbar thread-toolbar">
+              <button type="button" class="format-bold-btn" id="thread-bold-btn" aria-label="Bold">B</button>
+              <button type="button" class="format-italic-btn" id="thread-italic-btn" aria-label="Italic">I</button>
+              <button type="button" class="format-underline-btn" id="thread-underline-btn" aria-label="Underline">U</button>
+              <button type="button" class="link-picker-btn" id="thread-link-btn" aria-label="Add link">🔗</button>
+              <button type="button" class="format-bullet-btn" id="thread-bullet-btn" aria-label="Bulleted list">•</button>
+              <button type="button" class="format-numbered-btn" id="thread-numbered-btn" aria-label="Numbered list">1.</button>
+              <button type="button" class="emoji-picker-btn" id="thread-emoji-btn" aria-label="Add emoji">🙂</button>
+            </div>
+            <div class="thread-input-row">
+              <textarea id="thread-input" rows="1" placeholder="Write a message…" maxlength="2000" required></textarea>
+              <button type="submit" class="btn btn-primary">Send</button>
+            </div>
           </form>
         </section>
 
@@ -177,6 +186,7 @@
   <script src="script.js"></script>
   <script src="js/emoji-picker.js"></script>
   <script src="js/link-tool.js"></script>
+  <script src="js/format-tools.js"></script>
   <script src="js/messages.js"></script>
 </body>
 </html>

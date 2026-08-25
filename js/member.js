@@ -49,23 +49,58 @@ document.addEventListener("DOMContentLoaded", async () => {
     return escapeHTML(str);
   }
 
-  // Handles both explicit [link text](https://url) links (see
-  // js/community.js renderLinks — same technique, kept here since
-  // this file has its own local escapeHTML/escapeAttr rather than a
-  // shared module) and bare https://... URLs pasted directly.
-  function renderLinks(escapedText) {
+  // Handles **bold**, *italic*, __underline__, explicit
+  // [link text](https://url) links, and bare https://... URLs pasted
+  // directly — see js/community.js renderInline/renderBlocks for the
+  // full rationale (same technique, kept here since this file has its
+  // own local escapeHTML/escapeAttr rather than a shared module).
+  function renderInline(escapedText) {
     return escapedText.replace(
-      /\[([^[\]]+)\]\((https?:\/\/[^\s()]+)\)|(https?:\/\/[^\s<]+)/g,
-      (match, label, bracketUrl, bareUrl) => {
-        if (bracketUrl) {
-          return `<a href="${bracketUrl}" target="_blank" rel="noopener">${label}</a>`;
-        }
+      /\*\*(.+?)\*\*|__(.+?)__|\*(.+?)\*|\[([^[\]]+)\]\((https?:\/\/[^\s()]+)\)|(https?:\/\/[^\s<]+)/g,
+      (match, bold, underline, italic, linkLabel, linkUrl, bareUrl) => {
+        if (bold !== undefined) return `<strong>${bold}</strong>`;
+        if (underline !== undefined) return `<u>${underline}</u>`;
+        if (italic !== undefined) return `<em>${italic}</em>`;
+        if (linkUrl) return `<a href="${linkUrl}" target="_blank" rel="noopener">${linkLabel}</a>`;
         const trailingMatch = bareUrl.match(/[).,!?;:]+$/);
         const trailing = trailingMatch ? trailingMatch[0] : "";
         const clean = trailing ? bareUrl.slice(0, -trailing.length) : bareUrl;
         return `<a href="${clean}" target="_blank" rel="noopener">${clean}</a>${trailing}`;
       }
     );
+  }
+
+  function renderBlocks(text) {
+    const lines = text.split("\n");
+    const out = [];
+    let i = 0;
+    while (i < lines.length) {
+      const bulletMatch = lines[i].match(/^-\s+(.*)$/);
+      const numberedMatch = lines[i].match(/^\d+\.\s+(.*)$/);
+      if (bulletMatch) {
+        const items = [];
+        while (i < lines.length) {
+          const m = lines[i].match(/^-\s+(.*)$/);
+          if (!m) break;
+          items.push(`<li>${renderInline(m[1])}</li>`);
+          i++;
+        }
+        out.push(`<ul>${items.join("")}</ul>`);
+      } else if (numberedMatch) {
+        const items = [];
+        while (i < lines.length) {
+          const m = lines[i].match(/^\d+\.\s+(.*)$/);
+          if (!m) break;
+          items.push(`<li>${renderInline(m[1])}</li>`);
+          i++;
+        }
+        out.push(`<ol>${items.join("")}</ol>`);
+      } else {
+        out.push(renderInline(lines[i]));
+        i++;
+      }
+    }
+    return out.join("\n");
   }
 
   let profile;
@@ -200,7 +235,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           (p) => `
         <article class="post-card">
           <h3 class="post-title"><a href="community.html">${escapeHTML(p.title)}</a></h3>
-          <p class="post-body">${renderLinks(escapeHTML(p.body))}</p>
+          <div class="post-body">${renderBlocks(escapeHTML(p.body))}</div>
         </article>
       `
         )

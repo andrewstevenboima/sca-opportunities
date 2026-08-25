@@ -13,6 +13,13 @@
  *        - "Subscribers"
  *      Use the column headers listed in README.md.
  *
+ *      To have the site show newest opportunities first, add a
+ *      "date_added" column to the Opportunities tab (a Date-typed
+ *      cell, or a yyyy-mm-dd string) with the day you added each row
+ *      — the frontend sorts by it automatically once present. Rows
+ *      without a date_added value still show, just after every dated
+ *      row instead of causing an error.
+ *
  *   2. Open script.google.com → New Project.
  *   3. Paste this entire file into Code.gs.
  *   4. Update SHEET_ID below (copy from your Sheet URL:

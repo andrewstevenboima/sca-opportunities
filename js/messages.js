@@ -21,6 +21,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   const threadInput = document.getElementById("thread-input");
   const threadEmojiBtn = document.getElementById("thread-emoji-btn");
   const threadLinkBtn = document.getElementById("thread-link-btn");
+  const threadBoldBtn = document.getElementById("thread-bold-btn");
+  const threadItalicBtn = document.getElementById("thread-italic-btn");
+  const threadUnderlineBtn = document.getElementById("thread-underline-btn");
+  const threadBulletBtn = document.getElementById("thread-bullet-btn");
+  const threadNumberedBtn = document.getElementById("thread-numbered-btn");
 
   if (!window.SCA || !window.SCA.ready) {
     signedOutBox.hidden = false;
@@ -70,23 +75,62 @@ document.addEventListener("DOMContentLoaded", async () => {
     return escapeHTML(str);
   }
 
-  // Handles both explicit [link text](https://url) links (see
-  // js/community.js renderLinks — same technique, kept here since
-  // this file has its own local escapeHTML/escapeAttr rather than a
-  // shared module) and bare https://... URLs pasted directly.
-  function renderLinks(escapedText) {
+  // Handles **bold**, *italic*, __underline__ (inserted via the
+  // format-tools.js ribbon buttons), explicit [link text](https://url)
+  // links (see js/community.js renderInline — same technique, kept
+  // here since this file has its own local escapeHTML/escapeAttr
+  // rather than a shared module), and bare https://... URLs pasted
+  // directly.
+  function renderInline(escapedText) {
     return escapedText.replace(
-      /\[([^[\]]+)\]\((https?:\/\/[^\s()]+)\)|(https?:\/\/[^\s<]+)/g,
-      (match, label, bracketUrl, bareUrl) => {
-        if (bracketUrl) {
-          return `<a href="${bracketUrl}" target="_blank" rel="noopener">${label}</a>`;
-        }
+      /\*\*(.+?)\*\*|__(.+?)__|\*(.+?)\*|\[([^[\]]+)\]\((https?:\/\/[^\s()]+)\)|(https?:\/\/[^\s<]+)/g,
+      (match, bold, underline, italic, linkLabel, linkUrl, bareUrl) => {
+        if (bold !== undefined) return `<strong>${bold}</strong>`;
+        if (underline !== undefined) return `<u>${underline}</u>`;
+        if (italic !== undefined) return `<em>${italic}</em>`;
+        if (linkUrl) return `<a href="${linkUrl}" target="_blank" rel="noopener">${linkLabel}</a>`;
         const trailingMatch = bareUrl.match(/[).,!?;:]+$/);
         const trailing = trailingMatch ? trailingMatch[0] : "";
         const clean = trailing ? bareUrl.slice(0, -trailing.length) : bareUrl;
         return `<a href="${clean}" target="_blank" rel="noopener">${clean}</a>${trailing}`;
       }
     );
+  }
+
+  // Block-level counterpart to renderInline — turns "- " lines into a
+  // real <ul> and "1. " lines into a real <ol>. See
+  // js/community.js renderBlocks for the full rationale.
+  function renderBlocks(text) {
+    const lines = text.split("\n");
+    const out = [];
+    let i = 0;
+    while (i < lines.length) {
+      const bulletMatch = lines[i].match(/^-\s+(.*)$/);
+      const numberedMatch = lines[i].match(/^\d+\.\s+(.*)$/);
+      if (bulletMatch) {
+        const items = [];
+        while (i < lines.length) {
+          const m = lines[i].match(/^-\s+(.*)$/);
+          if (!m) break;
+          items.push(`<li>${renderInline(m[1])}</li>`);
+          i++;
+        }
+        out.push(`<ul>${items.join("")}</ul>`);
+      } else if (numberedMatch) {
+        const items = [];
+        while (i < lines.length) {
+          const m = lines[i].match(/^\d+\.\s+(.*)$/);
+          if (!m) break;
+          items.push(`<li>${renderInline(m[1])}</li>`);
+          i++;
+        }
+        out.push(`<ol>${items.join("")}</ol>`);
+      } else {
+        out.push(renderInline(lines[i]));
+        i++;
+      }
+    }
+    return out.join("\n");
   }
 
   function formatTime(iso) {
@@ -167,7 +211,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       <form class="edit-form">
         <textarea class="edit-form-body" rows="2" maxlength="2000" required>${escapeHTML(msg.body)}</textarea>
         <div class="composer-toolbar">
+          <button type="button" class="format-bold-btn" aria-label="Bold">B</button>
+          <button type="button" class="format-italic-btn" aria-label="Italic">I</button>
+          <button type="button" class="format-underline-btn" aria-label="Underline">U</button>
           <button type="button" class="link-picker-btn" aria-label="Add link">🔗</button>
+          <button type="button" class="format-bullet-btn" aria-label="Bulleted list">•</button>
+          <button type="button" class="format-numbered-btn" aria-label="Numbered list">1.</button>
           <button type="button" class="emoji-picker-btn" aria-label="Add emoji">🙂</button>
           <div class="edit-form-actions">
             <button type="button" class="btn btn-ghost edit-form-cancel">Cancel</button>
@@ -187,6 +236,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (typeof window.attachLinkButton === "function") {
       attachLinkButton(form.querySelector(".link-picker-btn"), bodyInput);
     }
+    if (typeof window.attachFormatButton === "function") {
+      attachFormatButton(form.querySelector(".format-bold-btn"), bodyInput, "bold");
+      attachFormatButton(form.querySelector(".format-italic-btn"), bodyInput, "italic");
+      attachFormatButton(form.querySelector(".format-underline-btn"), bodyInput, "underline");
+      attachFormatButton(form.querySelector(".format-bullet-btn"), bodyInput, "bullet");
+      attachFormatButton(form.querySelector(".format-numbered-btn"), bodyInput, "numbered");
+    }
 
     form.querySelector(".edit-form-cancel").addEventListener("click", () => {
       content.innerHTML = original;
@@ -201,7 +257,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const updated = await window.SCA.updateMessage(msg.id, body);
         msg.body = updated.body;
         msg.edited_at = updated.edited_at;
-        content.innerHTML = `<p>${renderLinks(escapeHTML(msg.body))}</p>`;
+        content.innerHTML = `<div class="thread-bubble-text">${renderBlocks(escapeHTML(msg.body))}</div>`;
         const foot = row.querySelector(".thread-bubble-foot");
         if (foot && !foot.querySelector(".edited-tag")) {
           foot.querySelector(".thread-bubble-time").insertAdjacentHTML("afterend", '<span class="edited-tag">edited</span>');
@@ -219,7 +275,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     row.className = "thread-bubble-row " + (isOwn ? "is-own" : "is-other");
     row.innerHTML = `
       <div class="thread-bubble">
-        <div class="thread-bubble-content"><p>${renderLinks(escapeHTML(msg.body))}</p></div>
+        <div class="thread-bubble-content"><div class="thread-bubble-text">${renderBlocks(escapeHTML(msg.body))}</div></div>
         <div class="thread-bubble-foot">
           <span class="thread-bubble-time">${formatTime(msg.created_at)}</span>
           ${msg.edited_at ? '<span class="edited-tag">edited</span>' : ""}
@@ -277,6 +333,30 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  // Auto-grows the compose box as the student types multi-line
+  // messages (e.g. while building a bulleted list), capped by the
+  // max-height set in community.css so it never swallows the thread.
+  function resizeThreadInput() {
+    threadInput.style.height = "auto";
+    threadInput.style.height = `${threadInput.scrollHeight}px`;
+  }
+  threadInput.addEventListener("input", resizeThreadInput);
+
+  // Chat-style Enter-to-send: Enter alone submits, Shift+Enter inserts
+  // a real newline (needed so the format ribbon's list buttons — which
+  // only make sense across multiple lines — actually work here). If
+  // the caret is on a "- "/"1. " list line, Enter continues the list
+  // instead of sending — handleListEnter (format-tools.js) owns that
+  // decision and calls preventDefault itself when it applies, which
+  // is why attachFormatButton below is told not to also auto-wire its
+  // own Enter handler on this textarea.
+  threadInput.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" || e.shiftKey) return;
+    if (typeof window.handleListEnter === "function" && window.handleListEnter(threadInput, e)) return;
+    e.preventDefault();
+    threadForm.requestSubmit();
+  });
+
   threadForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const body = threadInput.value.trim();
@@ -291,6 +371,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       threadMessages.appendChild(renderMessageBubble(msg));
       threadMessages.scrollTop = threadMessages.scrollHeight;
       threadInput.value = "";
+      resizeThreadInput();
       loadConversations();
     } catch (err) {
       alert(
@@ -308,6 +389,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   if (threadLinkBtn && typeof window.attachLinkButton === "function") {
     attachLinkButton(threadLinkBtn, threadInput);
+  }
+  if (typeof window.attachFormatButton === "function") {
+    if (threadBoldBtn) attachFormatButton(threadBoldBtn, threadInput, "bold");
+    if (threadItalicBtn) attachFormatButton(threadItalicBtn, threadInput, "italic");
+    if (threadUnderlineBtn) attachFormatButton(threadUnderlineBtn, threadInput, "underline");
+    if (threadBulletBtn) attachFormatButton(threadBulletBtn, threadInput, "bullet", { wireEnter: false });
+    if (threadNumberedBtn) attachFormatButton(threadNumberedBtn, threadInput, "numbered", { wireEnter: false });
   }
 
   await loadConversations();

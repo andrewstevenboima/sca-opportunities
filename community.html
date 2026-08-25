@@ -116,7 +116,12 @@
         </div>
         <div class="auth-error" id="new-post-error" role="alert"></div>
         <div class="composer-toolbar">
+          <button type="button" class="format-bold-btn" id="post-body-bold-btn" aria-label="Bold">B</button>
+          <button type="button" class="format-italic-btn" id="post-body-italic-btn" aria-label="Italic">I</button>
+          <button type="button" class="format-underline-btn" id="post-body-underline-btn" aria-label="Underline">U</button>
           <button type="button" class="link-picker-btn" id="post-body-link-btn" aria-label="Add link">🔗</button>
+          <button type="button" class="format-bullet-btn" id="post-body-bullet-btn" aria-label="Bulleted list">•</button>
+          <button type="button" class="format-numbered-btn" id="post-body-numbered-btn" aria-label="Numbered list">1.</button>
           <button type="button" class="emoji-picker-btn" id="post-body-emoji-btn" aria-label="Add emoji">🙂</button>
           <button type="submit" class="btn btn-primary" id="new-post-submit">Post to the Common Room</button>
         </div>
@@ -170,6 +175,7 @@
   <script src="script.js"></script>
   <script src="js/emoji-picker.js"></script>
   <script src="js/link-tool.js"></script>
+  <script src="js/format-tools.js"></script>
   <script src="js/community.js"></script>
 </body>
 </html>

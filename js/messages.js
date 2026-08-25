@@ -20,6 +20,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const threadForm = document.getElementById("thread-form");
   const threadInput = document.getElementById("thread-input");
   const threadEmojiBtn = document.getElementById("thread-emoji-btn");
+  const threadLinkBtn = document.getElementById("thread-link-btn");
 
   if (!window.SCA || !window.SCA.ready) {
     signedOutBox.hidden = false;
@@ -67,6 +68,25 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   function escapeAttr(str) {
     return escapeHTML(str);
+  }
+
+  // Handles both explicit [link text](https://url) links (see
+  // js/community.js renderLinks — same technique, kept here since
+  // this file has its own local escapeHTML/escapeAttr rather than a
+  // shared module) and bare https://... URLs pasted directly.
+  function renderLinks(escapedText) {
+    return escapedText.replace(
+      /\[([^[\]]+)\]\((https?:\/\/[^\s()]+)\)|(https?:\/\/[^\s<]+)/g,
+      (match, label, bracketUrl, bareUrl) => {
+        if (bracketUrl) {
+          return `<a href="${bracketUrl}" target="_blank" rel="noopener">${label}</a>`;
+        }
+        const trailingMatch = bareUrl.match(/[).,!?;:]+$/);
+        const trailing = trailingMatch ? trailingMatch[0] : "";
+        const clean = trailing ? bareUrl.slice(0, -trailing.length) : bareUrl;
+        return `<a href="${clean}" target="_blank" rel="noopener">${clean}</a>${trailing}`;
+      }
+    );
   }
 
   function formatTime(iso) {
@@ -139,15 +159,78 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
+  function startEditingMessage(row, msg) {
+    const content = row.querySelector(".thread-bubble-content");
+    const original = content.innerHTML;
+
+    content.innerHTML = `
+      <form class="edit-form">
+        <textarea class="edit-form-body" rows="2" maxlength="2000" required>${escapeHTML(msg.body)}</textarea>
+        <div class="composer-toolbar">
+          <button type="button" class="link-picker-btn" aria-label="Add link">🔗</button>
+          <button type="button" class="emoji-picker-btn" aria-label="Add emoji">🙂</button>
+          <div class="edit-form-actions">
+            <button type="button" class="btn btn-ghost edit-form-cancel">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save</button>
+          </div>
+        </div>
+      </form>
+    `;
+
+    const form = content.querySelector(".edit-form");
+    const bodyInput = form.querySelector(".edit-form-body");
+    bodyInput.focus();
+
+    if (typeof window.attachEmojiPicker === "function") {
+      attachEmojiPicker(form.querySelector(".emoji-picker-btn"), bodyInput);
+    }
+    if (typeof window.attachLinkButton === "function") {
+      attachLinkButton(form.querySelector(".link-picker-btn"), bodyInput);
+    }
+
+    form.querySelector(".edit-form-cancel").addEventListener("click", () => {
+      content.innerHTML = original;
+    });
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const body = bodyInput.value.trim();
+      if (!body) return;
+      const saveBtn = form.querySelector("button[type=submit]");
+      saveBtn.disabled = true;
+      try {
+        const updated = await window.SCA.updateMessage(msg.id, body);
+        msg.body = updated.body;
+        msg.edited_at = updated.edited_at;
+        content.innerHTML = `<p>${renderLinks(escapeHTML(msg.body))}</p>`;
+        const foot = row.querySelector(".thread-bubble-foot");
+        if (foot && !foot.querySelector(".edited-tag")) {
+          foot.querySelector(".thread-bubble-time").insertAdjacentHTML("afterend", '<span class="edited-tag">edited</span>');
+        }
+      } catch (err) {
+        alert(err.message || "Couldn't save those changes.");
+        saveBtn.disabled = false;
+      }
+    });
+  }
+
   function renderMessageBubble(msg) {
+    const isOwn = msg.sender_id === user.id;
     const row = document.createElement("div");
-    row.className = "thread-bubble-row " + (msg.sender_id === user.id ? "is-own" : "is-other");
+    row.className = "thread-bubble-row " + (isOwn ? "is-own" : "is-other");
     row.innerHTML = `
       <div class="thread-bubble">
-        <p>${escapeHTML(msg.body)}</p>
-        <span class="thread-bubble-time">${formatTime(msg.created_at)}</span>
+        <div class="thread-bubble-content"><p>${renderLinks(escapeHTML(msg.body))}</p></div>
+        <div class="thread-bubble-foot">
+          <span class="thread-bubble-time">${formatTime(msg.created_at)}</span>
+          ${msg.edited_at ? '<span class="edited-tag">edited</span>' : ""}
+          ${isOwn ? '<button type="button" class="thread-bubble-edit">Edit</button>' : ""}
+        </div>
       </div>
     `;
+    const editBtn = row.querySelector(".thread-bubble-edit");
+    if (editBtn) {
+      editBtn.addEventListener("click", () => startEditingMessage(row, msg));
+    }
     return row;
   }
 
@@ -222,6 +305,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (threadEmojiBtn && typeof window.attachEmojiPicker === "function") {
     attachEmojiPicker(threadEmojiBtn, threadInput);
+  }
+  if (threadLinkBtn && typeof window.attachLinkButton === "function") {
+    attachLinkButton(threadLinkBtn, threadInput);
   }
 
   await loadConversations();

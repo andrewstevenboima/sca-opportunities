@@ -385,16 +385,20 @@ create policy "companions_delete_own" on public.companions
 -- ---------------------------------------------------------------
 -- discussion_posts / discussion_comments: The Common Room. Any
 -- signed-in student can start a discussion or reply; posts and
--- comments are readable by any signed-in student, and editable
--- (delete-only, to keep this simple) only by their own author.
+-- comments are readable by any signed-in student, and editable or
+-- deletable only by their own author. edited_at is stamped
+-- automatically by the trigger below, never trusted from the client.
 -- ---------------------------------------------------------------
 create table if not exists public.discussion_posts (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users (id) on delete cascade,
   title text not null check (char_length(title) between 1 and 150),
   body text not null check (char_length(body) between 1 and 5000),
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  edited_at timestamptz
 );
+
+alter table public.discussion_posts add column if not exists edited_at timestamptz;
 
 alter table public.discussion_posts enable row level security;
 
@@ -406,17 +410,50 @@ drop policy if exists "discussion_posts_insert_own" on public.discussion_posts;
 create policy "discussion_posts_insert_own" on public.discussion_posts
   for insert with check (auth.uid() = user_id);
 
+drop policy if exists "discussion_posts_update_own" on public.discussion_posts;
+create policy "discussion_posts_update_own" on public.discussion_posts
+  for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
 drop policy if exists "discussion_posts_delete_own" on public.discussion_posts;
 create policy "discussion_posts_delete_own" on public.discussion_posts
   for delete using (auth.uid() = user_id);
+
+-- The update policy above only constrains WHO can update a row, not
+-- WHICH columns — without this, an author editing their post could
+-- also (accidentally or not) reassign user_id, silently changing who
+-- the post is publicly attributed to, or back-date created_at. Only
+-- title/body may actually change; edited_at is set here, not trusted
+-- from the client.
+create or replace function public.protect_post_fields()
+returns trigger
+language plpgsql
+as $$
+begin
+  if new.user_id <> old.user_id or new.created_at <> old.created_at then
+    raise exception 'Only title/body may be updated on discussion_posts.';
+  end if;
+  if new.title <> old.title or new.body <> old.body then
+    new.edited_at = now();
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists discussion_posts_protect_fields on public.discussion_posts;
+create trigger discussion_posts_protect_fields
+  before update on public.discussion_posts
+  for each row execute function public.protect_post_fields();
 
 create table if not exists public.discussion_comments (
   id uuid primary key default gen_random_uuid(),
   post_id uuid not null references public.discussion_posts (id) on delete cascade,
   user_id uuid not null references auth.users (id) on delete cascade,
   body text not null check (char_length(body) between 1 and 2000),
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  edited_at timestamptz
 );
+
+alter table public.discussion_comments add column if not exists edited_at timestamptz;
 
 alter table public.discussion_comments enable row level security;
 
@@ -428,9 +465,34 @@ drop policy if exists "discussion_comments_insert_own" on public.discussion_comm
 create policy "discussion_comments_insert_own" on public.discussion_comments
   for insert with check (auth.uid() = user_id);
 
+drop policy if exists "discussion_comments_update_own" on public.discussion_comments;
+create policy "discussion_comments_update_own" on public.discussion_comments
+  for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
 drop policy if exists "discussion_comments_delete_own" on public.discussion_comments;
 create policy "discussion_comments_delete_own" on public.discussion_comments
   for delete using (auth.uid() = user_id);
+
+-- Same reasoning as protect_post_fields above: only body may change.
+create or replace function public.protect_comment_fields()
+returns trigger
+language plpgsql
+as $$
+begin
+  if new.user_id <> old.user_id or new.post_id <> old.post_id or new.created_at <> old.created_at then
+    raise exception 'Only body may be updated on discussion_comments.';
+  end if;
+  if new.body <> old.body then
+    new.edited_at = now();
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists discussion_comments_protect_fields on public.discussion_comments;
+create trigger discussion_comments_protect_fields
+  before update on public.discussion_comments
+  for each row execute function public.protect_comment_fields();
 
 create index if not exists discussion_comments_post_id_idx on public.discussion_comments (post_id);
 
@@ -501,8 +563,11 @@ create table if not exists public.messages (
   body text not null check (char_length(body) between 1 and 2000),
   created_at timestamptz not null default now(),
   read_at timestamptz,
+  edited_at timestamptz,
   check (sender_id <> recipient_id)
 );
+
+alter table public.messages add column if not exists edited_at timestamptz;
 
 alter table public.messages enable row level security;
 
@@ -525,24 +590,45 @@ drop policy if exists "messages_update_mark_read" on public.messages;
 create policy "messages_update_mark_read" on public.messages
   for update using (auth.uid() = recipient_id) with check (auth.uid() = recipient_id);
 
--- The policy above only constrains WHO can update a row (its
--- recipient) — RLS has no notion of "only this column may change",
--- so on its own it would let a recipient rewrite body/sender_id
--- through the same call js/messages.js uses to mark a thread read.
--- Because a message is one shared row visible to both parties, that
--- would let a recipient silently rewrite what the SENDER also sees
--- was said in their own conversation. This trigger is the actual
--- enforcement: only read_at is allowed to change.
+-- Lets the sender edit a message they sent (body only) — separate
+-- from the recipient's mark-read policy above since it's a different
+-- actor updating the same row for a different reason.
+drop policy if exists "messages_update_own_body" on public.messages;
+create policy "messages_update_own_body" on public.messages
+  for update using (auth.uid() = sender_id) with check (auth.uid() = sender_id);
+
+-- Neither policy above constrains WHICH columns change — RLS has no
+-- notion of "only this column may change" — so on their own they'd
+-- let the recipient rewrite body/sender_id through the mark-read
+-- call, or let the sender rewrite recipient_id/created_at through an
+-- edit. Because a message is one shared row visible to both parties,
+-- either would let one side silently rewrite what the OTHER also
+-- sees in their own conversation. This trigger is the actual
+-- enforcement, branching on which policy must have allowed the
+-- update to reach here: the sender may change body (edited_at is
+-- stamped here, not trusted from the client); anyone else (i.e. the
+-- recipient, marking read) may change only read_at.
 create or replace function public.protect_message_fields()
 returns trigger
 language plpgsql
 as $$
 begin
-  if new.sender_id <> old.sender_id
-     or new.recipient_id <> old.recipient_id
-     or new.body <> old.body
-     or new.created_at <> old.created_at then
-    raise exception 'Only read_at may be updated on messages.';
+  if auth.uid() = new.sender_id then
+    if new.sender_id <> old.sender_id
+       or new.recipient_id <> old.recipient_id
+       or new.created_at <> old.created_at then
+      raise exception 'Only body/read_at may be updated on messages.';
+    end if;
+    if new.body <> old.body then
+      new.edited_at = now();
+    end if;
+  else
+    if new.sender_id <> old.sender_id
+       or new.recipient_id <> old.recipient_id
+       or new.body <> old.body
+       or new.created_at <> old.created_at then
+      raise exception 'Only read_at may be updated on messages.';
+    end if;
   end if;
   return new;
 end;

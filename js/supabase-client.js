@@ -285,6 +285,18 @@ const SCA = {
     if (error) throw error;
   },
 
+  async updatePost(postId, { title, body }) {
+    if (!sb) throw new Error("Supabase is not configured yet.");
+    const { data, error } = await sb
+      .from("discussion_posts")
+      .update({ title, body })
+      .eq("id", postId)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
   async listComments(postId) {
     if (!sb) return [];
     const { data, error } = await sb
@@ -311,6 +323,18 @@ const SCA = {
     if (!sb) return;
     const { error } = await sb.from("discussion_comments").delete().eq("id", commentId);
     if (error) throw error;
+  },
+
+  async updateComment(commentId, body) {
+    if (!sb) throw new Error("Supabase is not configured yet.");
+    const { data, error } = await sb
+      .from("discussion_comments")
+      .update({ body })
+      .eq("id", commentId)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
   },
 
   // ---- Reactions (emoji reactions on posts/comments — see schema.sql) ----
@@ -418,6 +442,18 @@ const SCA = {
     const { data, error } = await sb
       .from("messages")
       .insert({ sender_id: senderId, recipient_id: recipientId, body })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async updateMessage(messageId, body) {
+    if (!sb) throw new Error("Supabase is not configured yet.");
+    const { data, error } = await sb
+      .from("messages")
+      .update({ body })
+      .eq("id", messageId)
       .select()
       .single();
     if (error) throw error;

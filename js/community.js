@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const postTitle = document.getElementById("post-title");
   const postBody = document.getElementById("post-body");
   const postBodyEmojiBtn = document.getElementById("post-body-emoji-btn");
+  const postBodyLinkBtn = document.getElementById("post-body-link-btn");
   const postError = document.getElementById("new-post-error");
   const postSubmit = document.getElementById("new-post-submit");
   const postsList = document.getElementById("posts-list");
@@ -62,13 +63,29 @@ document.addEventListener("DOMContentLoaded", async () => {
       " · " + d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
   }
 
-  function linkify(escapedText) {
-    return escapedText.replace(/(https?:\/\/[^\s<]+)/g, (url) => {
-      const trailingMatch = url.match(/[).,!?;:]+$/);
-      const trailing = trailingMatch ? trailingMatch[0] : "";
-      const clean = trailing ? url.slice(0, -trailing.length) : url;
-      return `<a href="${clean}" target="_blank" rel="noopener">${clean}</a>${trailing}`;
-    });
+  // Handles both explicit [link text](https://url) links (inserted
+  // via the 🔗 button, js/link-tool.js) and bare https://... URLs
+  // pasted directly — in a single regex/replace pass, not two
+  // separate ones. That's what stops a bracket-linked URL from also
+  // being caught and re-wrapped by the bare-URL branch: once those
+  // characters are consumed by the bracket alternative, the same
+  // scan can't also match them as a bare URL afterward. Runs on
+  // already-escaped text, so the "url" match can only ever start
+  // with a literal http(s):// — nothing else (e.g. javascript:) can
+  // reach an href this way.
+  function renderLinks(escapedText) {
+    return escapedText.replace(
+      /\[([^[\]]+)\]\((https?:\/\/[^\s()]+)\)|(https?:\/\/[^\s<]+)/g,
+      (match, label, bracketUrl, bareUrl) => {
+        if (bracketUrl) {
+          return `<a href="${bracketUrl}" target="_blank" rel="noopener">${label}</a>`;
+        }
+        const trailingMatch = bareUrl.match(/[).,!?;:]+$/);
+        const trailing = trailingMatch ? trailingMatch[0] : "";
+        const clean = trailing ? bareUrl.slice(0, -trailing.length) : bareUrl;
+        return `<a href="${clean}" target="_blank" rel="noopener">${clean}</a>${trailing}`;
+      }
+    );
   }
 
   // ---- @mentions ----
@@ -394,6 +411,66 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
+  async function renderPostContent(post) {
+    return `
+      <h3 class="post-title">${escapeHTML(post.title)}</h3>
+      <p class="post-body">${renderLinks(renderAllMention(renderMentions(escapeHTML(post.body), await getAllProfiles())))}</p>
+    `;
+  }
+
+  function startEditingPost(card, post, onSaved) {
+    const content = card.querySelector(".post-content");
+    const original = content.innerHTML;
+
+    content.innerHTML = `
+      <form class="edit-form">
+        <input type="text" class="edit-form-title" maxlength="150" required value="${escapeAttr(post.title)}" />
+        <textarea class="edit-form-body" rows="3" maxlength="5000" required>${escapeHTML(post.body)}</textarea>
+        <div class="composer-toolbar">
+          <button type="button" class="link-picker-btn" aria-label="Add link">🔗</button>
+          <button type="button" class="emoji-picker-btn" aria-label="Add emoji">🙂</button>
+          <div class="edit-form-actions">
+            <button type="button" class="btn btn-ghost edit-form-cancel">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save</button>
+          </div>
+        </div>
+      </form>
+    `;
+
+    const form = content.querySelector(".edit-form");
+    const titleInput = form.querySelector(".edit-form-title");
+    const bodyInput = form.querySelector(".edit-form-body");
+    bodyInput.focus();
+
+    if (typeof window.attachEmojiPicker === "function") {
+      attachEmojiPicker(form.querySelector(".emoji-picker-btn"), bodyInput);
+    }
+    if (typeof window.attachLinkButton === "function") {
+      attachLinkButton(form.querySelector(".link-picker-btn"), bodyInput);
+    }
+
+    function cancel() {
+      content.innerHTML = original;
+    }
+
+    form.querySelector(".edit-form-cancel").addEventListener("click", cancel);
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const title = titleInput.value.trim();
+      const body = bodyInput.value.trim();
+      if (!title || !body) return;
+      const saveBtn = form.querySelector("button[type=submit]");
+      saveBtn.disabled = true;
+      try {
+        const updated = await window.SCA.updatePost(post.id, { title, body });
+        onSaved(updated);
+      } catch (err) {
+        alert(err.message || "Couldn't save those changes.");
+        saveBtn.disabled = false;
+      }
+    });
+  }
+
   async function renderPostCard(post) {
     const author = await getAuthor(post.user_id);
     const name = author?.full_name || "A student";
@@ -408,16 +485,16 @@ document.addEventListener("DOMContentLoaded", async () => {
           <a href="member.html?id=${escapeAttr(post.user_id)}" class="post-author-avatar-link" aria-label="View ${escapeAttr(name)}'s profile">${avatarHTML(author, "account-avatar--sm")}</a>
           <div>
             <a href="member.html?id=${escapeAttr(post.user_id)}" class="post-author-name">${escapeHTML(name)}</a>
-            <div class="post-time">${formatTime(post.created_at)}</div>
+            <div class="post-time">${formatTime(post.created_at)}${post.edited_at ? ' · <span class="edited-tag">edited</span>' : ""}</div>
           </div>
         </div>
       </div>
-      <h3 class="post-title">${escapeHTML(post.title)}</h3>
-      <p class="post-body">${linkify(renderAllMention(renderMentions(escapeHTML(post.body), await getAllProfiles())))}</p>
+      <div class="post-content">${await renderPostContent(post)}</div>
       <div class="reaction-bar" data-target-type="post" data-target-id="${escapeAttr(post.id)}"></div>
       <div class="post-actions">
         <button type="button" class="post-toggle-comments" data-post-id="${escapeAttr(post.id)}">Comments</button>
         <button type="button" class="post-share" data-post-id="${escapeAttr(post.id)}">Share</button>
+        ${isOwn ? `<button type="button" class="post-edit" data-post-id="${escapeAttr(post.id)}">Edit</button>` : ""}
         ${isOwn ? `<button type="button" class="post-delete" data-post-id="${escapeAttr(post.id)}">Delete</button>` : ""}
       </div>
       <div class="post-comments" hidden></div>
@@ -432,6 +509,21 @@ document.addEventListener("DOMContentLoaded", async () => {
         text: `${name}: "${post.title}" — SCA Opportunities Common Room`,
       });
     });
+    const editBtn = card.querySelector(".post-edit");
+    if (editBtn) {
+      editBtn.addEventListener("click", () => {
+        startEditingPost(card, post, async (updated) => {
+          post.title = updated.title;
+          post.body = updated.body;
+          post.edited_at = updated.edited_at;
+          card.querySelector(".post-content").innerHTML = await renderPostContent(post);
+          const timeEl = card.querySelector(".post-time");
+          if (timeEl && !timeEl.querySelector(".edited-tag")) {
+            timeEl.innerHTML = `${formatTime(post.created_at)} · <span class="edited-tag">edited</span>`;
+          }
+        });
+      });
+    }
     const deleteBtn = card.querySelector(".post-delete");
     if (deleteBtn) {
       deleteBtn.addEventListener("click", async () => {
@@ -446,6 +538,60 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     return card;
+  }
+
+  function startEditingComment(row, comment) {
+    const content = row.querySelector(".comment-content");
+    const original = content.innerHTML;
+
+    content.innerHTML = `
+      <form class="edit-form">
+        <textarea class="edit-form-body" rows="2" maxlength="2000" required>${escapeHTML(comment.body)}</textarea>
+        <div class="composer-toolbar">
+          <button type="button" class="link-picker-btn" aria-label="Add link">🔗</button>
+          <button type="button" class="emoji-picker-btn" aria-label="Add emoji">🙂</button>
+          <div class="edit-form-actions">
+            <button type="button" class="btn btn-ghost edit-form-cancel">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save</button>
+          </div>
+        </div>
+      </form>
+    `;
+
+    const form = content.querySelector(".edit-form");
+    const bodyInput = form.querySelector(".edit-form-body");
+    bodyInput.focus();
+
+    if (typeof window.attachEmojiPicker === "function") {
+      attachEmojiPicker(form.querySelector(".emoji-picker-btn"), bodyInput);
+    }
+    if (typeof window.attachLinkButton === "function") {
+      attachLinkButton(form.querySelector(".link-picker-btn"), bodyInput);
+    }
+
+    form.querySelector(".edit-form-cancel").addEventListener("click", () => {
+      content.innerHTML = original;
+    });
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const body = bodyInput.value.trim();
+      if (!body) return;
+      const saveBtn = form.querySelector("button[type=submit]");
+      saveBtn.disabled = true;
+      try {
+        const updated = await window.SCA.updateComment(comment.id, body);
+        comment.body = updated.body;
+        comment.edited_at = updated.edited_at;
+        content.innerHTML = `<p class="comment-body-text">${renderLinks(renderAllMention(renderMentions(escapeHTML(comment.body), await getAllProfiles())))}</p>`;
+        const nameLink = row.querySelector(".post-author-name");
+        if (nameLink && !nameLink.nextElementSibling?.classList.contains("edited-tag")) {
+          nameLink.insertAdjacentHTML("afterend", ' · <span class="edited-tag">edited</span>');
+        }
+      } catch (err) {
+        alert(err.message || "Couldn't save those changes.");
+        saveBtn.disabled = false;
+      }
+    });
   }
 
   async function toggleComments(card, postId) {
@@ -468,13 +614,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         const row = document.createElement("div");
         row.className = "comment";
         const commentAuthorName = author?.full_name || "A student";
+        const isOwnComment = comment.user_id === user.id;
         row.innerHTML = `
           <a href="member.html?id=${escapeAttr(comment.user_id)}" class="post-author-avatar-link" aria-label="View ${escapeAttr(commentAuthorName)}'s profile">${avatarHTML(author, "account-avatar--sm")}</a>
           <div class="comment-body">
-            <a href="member.html?id=${escapeAttr(comment.user_id)}" class="post-author-name">${escapeHTML(commentAuthorName)}</a>
-            <p class="comment-body-text">${linkify(renderAllMention(renderMentions(escapeHTML(comment.body), profiles)))}</p>
+            <a href="member.html?id=${escapeAttr(comment.user_id)}" class="post-author-name">${escapeHTML(commentAuthorName)}</a>${comment.edited_at ? ' · <span class="edited-tag">edited</span>' : ""}
+            <div class="comment-content"><p class="comment-body-text">${renderLinks(renderAllMention(renderMentions(escapeHTML(comment.body), profiles)))}</p></div>
             <div class="reaction-bar" data-target-type="comment" data-target-id="${escapeAttr(comment.id)}"></div>
-            <button type="button" class="comment-share">Share</button>
+            <div class="comment-actions">
+              <button type="button" class="comment-share">Share</button>
+              ${isOwnComment ? `<button type="button" class="comment-edit">Edit</button>` : ""}
+            </div>
           </div>
         `;
         renderReactionBar("comment", comment.id, row.querySelector(".reaction-bar"));
@@ -484,6 +634,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             text: `${commentAuthorName} commented on the Common Room: "${comment.body}"`,
           });
         });
+        const commentEditBtn = row.querySelector(".comment-edit");
+        if (commentEditBtn) {
+          commentEditBtn.addEventListener("click", () => startEditingComment(row, comment));
+        }
         box.appendChild(row);
       }
 
@@ -491,12 +645,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       form.className = "comment-form";
       form.innerHTML = `
         <input type="text" placeholder="Write a reply… use @ to mention someone" maxlength="2000" required />
+        <button type="button" class="link-picker-btn" aria-label="Add link">🔗</button>
         <button type="button" class="emoji-picker-btn" aria-label="Add emoji">🙂</button>
         <button type="submit" class="btn btn-ghost">Reply</button>
       `;
       attachMentionAutocomplete(form.querySelector("input"));
       if (typeof window.attachEmojiPicker === "function") {
         attachEmojiPicker(form.querySelector(".emoji-picker-btn"), form.querySelector("input"));
+      }
+      if (typeof window.attachLinkButton === "function") {
+        attachLinkButton(form.querySelector(".link-picker-btn"), form.querySelector("input"));
       }
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -578,6 +736,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   attachMentionAutocomplete(postBody);
   if (postBodyEmojiBtn && typeof window.attachEmojiPicker === "function") {
     attachEmojiPicker(postBodyEmojiBtn, postBody);
+  }
+  if (postBodyLinkBtn && typeof window.attachLinkButton === "function") {
+    attachLinkButton(postBodyLinkBtn, postBody);
   }
   getAllProfiles();
   loadPosts();

@@ -49,13 +49,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     return escapeHTML(str);
   }
 
-  function linkify(escapedText) {
-    return escapedText.replace(/(https?:\/\/[^\s<]+)/g, (url) => {
-      const trailingMatch = url.match(/[).,!?;:]+$/);
-      const trailing = trailingMatch ? trailingMatch[0] : "";
-      const clean = trailing ? url.slice(0, -trailing.length) : url;
-      return `<a href="${clean}" target="_blank" rel="noopener">${clean}</a>${trailing}`;
-    });
+  // Handles both explicit [link text](https://url) links (see
+  // js/community.js renderLinks — same technique, kept here since
+  // this file has its own local escapeHTML/escapeAttr rather than a
+  // shared module) and bare https://... URLs pasted directly.
+  function renderLinks(escapedText) {
+    return escapedText.replace(
+      /\[([^[\]]+)\]\((https?:\/\/[^\s()]+)\)|(https?:\/\/[^\s<]+)/g,
+      (match, label, bracketUrl, bareUrl) => {
+        if (bracketUrl) {
+          return `<a href="${bracketUrl}" target="_blank" rel="noopener">${label}</a>`;
+        }
+        const trailingMatch = bareUrl.match(/[).,!?;:]+$/);
+        const trailing = trailingMatch ? trailingMatch[0] : "";
+        const clean = trailing ? bareUrl.slice(0, -trailing.length) : bareUrl;
+        return `<a href="${clean}" target="_blank" rel="noopener">${clean}</a>${trailing}`;
+      }
+    );
   }
 
   let profile;
@@ -190,7 +200,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           (p) => `
         <article class="post-card">
           <h3 class="post-title"><a href="community.html">${escapeHTML(p.title)}</a></h3>
-          <p class="post-body">${linkify(escapeHTML(p.body))}</p>
+          <p class="post-body">${renderLinks(escapeHTML(p.body))}</p>
         </article>
       `
         )

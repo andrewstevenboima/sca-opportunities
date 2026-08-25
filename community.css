@@ -254,7 +254,8 @@
   gap: var(--s-2);
 }
 
-.emoji-picker-btn {
+.emoji-picker-btn,
+.link-picker-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -269,7 +270,8 @@
   line-height: 1;
 }
 
-.emoji-picker-btn:hover {
+.emoji-picker-btn:hover,
+.link-picker-btn:hover {
   border-color: var(--gold);
 }
 
@@ -305,6 +307,83 @@
   background: var(--cream);
 }
 
+/* -------------------------------------------------------------
+   Link picker — 🔗 button on the same composers as the emoji picker
+   ------------------------------------------------------------- */
+.link-picker-panel {
+  position: fixed;
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  padding: var(--s-4);
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 12px 30px -12px rgba(26, 26, 26, 0.2);
+  width: 260px;
+}
+
+.link-picker-field label {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+
+.link-picker-field input {
+  width: 100%;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 0.875rem;
+}
+
+.link-picker-field input:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-wash);
+}
+
+.link-picker-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--s-2);
+}
+
+.link-picker-cancel,
+.link-picker-insert {
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.4rem 0.85rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.link-picker-cancel {
+  background: none;
+  color: var(--ink-mute);
+}
+
+.link-picker-cancel:hover {
+  color: var(--ink);
+}
+
+.link-picker-insert {
+  background: var(--ink);
+  color: var(--white);
+}
+
+.link-picker-insert:hover {
+  background: var(--gold);
+}
+
 .post-actions {
   display: flex;
   align-items: center;
@@ -314,6 +393,7 @@
 
 .post-toggle-comments,
 .post-share,
+.post-edit,
 .post-delete {
   background: none;
   border: none;
@@ -323,18 +403,29 @@
 }
 
 .post-toggle-comments,
-.post-share {
+.post-share,
+.post-edit {
   color: var(--ink-mute);
   font-weight: 600;
+}
+
+.post-edit:hover {
+  color: var(--gold);
 }
 
 .post-delete {
   color: var(--red);
 }
 
-.comment-share {
-  display: block;
+.comment-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
   margin-top: var(--s-1);
+}
+
+.comment-share,
+.comment-edit {
   background: none;
   border: none;
   cursor: pointer;
@@ -344,8 +435,57 @@
   font-weight: 600;
 }
 
-.comment-share:hover {
+.comment-share:hover,
+.comment-edit:hover {
   color: var(--gold);
+}
+
+.edited-tag {
+  font-size: 0.75rem;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--ink-mute);
+}
+
+/* -------------------------------------------------------------
+   Inline edit forms — posts, comments, messages
+   ------------------------------------------------------------- */
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.edit-form-title {
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.edit-form-body {
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  font-family: inherit;
+  font-size: 0.875rem;
+  resize: vertical;
+  width: 100%;
+}
+
+.edit-form-title:focus,
+.edit-form-body:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold-wash);
+}
+
+.edit-form-actions {
+  display: flex;
+  gap: var(--s-2);
+  margin-left: auto;
 }
 
 .post-comments {
@@ -651,14 +791,43 @@
   margin: 0;
   font-size: 0.9375rem;
   white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+.thread-bubble p a {
+  color: inherit;
+  text-decoration: underline;
   word-break: break-word;
 }
 
-.thread-bubble-time {
-  display: block;
+.thread-bubble-foot {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
   margin-top: var(--s-1);
+}
+
+.thread-bubble-time {
   font-size: 0.6875rem;
   color: var(--ink-mute);
+}
+
+.thread-bubble-edit {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--ink-mute);
+}
+
+.thread-bubble-edit:hover {
+  color: var(--gold);
+}
+
+.thread-bubble .edit-form {
+  min-width: 220px;
 }
 
 .thread-form {

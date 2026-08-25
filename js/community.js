@@ -11,6 +11,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   const postBody = document.getElementById("post-body");
   const postBodyEmojiBtn = document.getElementById("post-body-emoji-btn");
   const postBodyLinkBtn = document.getElementById("post-body-link-btn");
+  const postBodyBoldBtn = document.getElementById("post-body-bold-btn");
+  const postBodyItalicBtn = document.getElementById("post-body-italic-btn");
+  const postBodyUnderlineBtn = document.getElementById("post-body-underline-btn");
+  const postBodyBulletBtn = document.getElementById("post-body-bullet-btn");
+  const postBodyNumberedBtn = document.getElementById("post-body-numbered-btn");
   const postError = document.getElementById("new-post-error");
   const postSubmit = document.getElementById("new-post-submit");
   const postsList = document.getElementById("posts-list");
@@ -63,29 +68,73 @@ document.addEventListener("DOMContentLoaded", async () => {
       " · " + d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
   }
 
-  // Handles both explicit [link text](https://url) links (inserted
-  // via the 🔗 button, js/link-tool.js) and bare https://... URLs
-  // pasted directly — in a single regex/replace pass, not two
-  // separate ones. That's what stops a bracket-linked URL from also
-  // being caught and re-wrapped by the bare-URL branch: once those
-  // characters are consumed by the bracket alternative, the same
-  // scan can't also match them as a bare URL afterward. Runs on
-  // already-escaped text, so the "url" match can only ever start
-  // with a literal http(s):// — nothing else (e.g. javascript:) can
-  // reach an href this way.
-  function renderLinks(escapedText) {
+  // Handles **bold**, *italic*, __underline__ (inserted via the
+  // format-tools.js ribbon buttons), explicit [link text](https://url)
+  // links (inserted via the 🔗 button, js/link-tool.js), and bare
+  // https://... URLs pasted directly — all in a single regex/replace
+  // pass, not several separate ones. That's what stops e.g. a
+  // bracket-linked URL from also being caught and re-wrapped by the
+  // bare-URL branch, or a "**" pair from being split apart by the
+  // single-"*" italic branch: once a run of characters is consumed by
+  // one alternative, the same scan can't also match a subset of it
+  // under another. Runs on already-escaped text, so the link URL can
+  // only ever start with a literal http(s):// — nothing else (e.g.
+  // javascript:) can reach an href this way.
+  function renderInline(escapedText) {
     return escapedText.replace(
-      /\[([^[\]]+)\]\((https?:\/\/[^\s()]+)\)|(https?:\/\/[^\s<]+)/g,
-      (match, label, bracketUrl, bareUrl) => {
-        if (bracketUrl) {
-          return `<a href="${bracketUrl}" target="_blank" rel="noopener">${label}</a>`;
-        }
+      /\*\*(.+?)\*\*|__(.+?)__|\*(.+?)\*|\[([^[\]]+)\]\((https?:\/\/[^\s()]+)\)|(https?:\/\/[^\s<]+)/g,
+      (match, bold, underline, italic, linkLabel, linkUrl, bareUrl) => {
+        if (bold !== undefined) return `<strong>${bold}</strong>`;
+        if (underline !== undefined) return `<u>${underline}</u>`;
+        if (italic !== undefined) return `<em>${italic}</em>`;
+        if (linkUrl) return `<a href="${linkUrl}" target="_blank" rel="noopener">${linkLabel}</a>`;
         const trailingMatch = bareUrl.match(/[).,!?;:]+$/);
         const trailing = trailingMatch ? trailingMatch[0] : "";
         const clean = trailing ? bareUrl.slice(0, -trailing.length) : bareUrl;
         return `<a href="${clean}" target="_blank" rel="noopener">${clean}</a>${trailing}`;
       }
     );
+  }
+
+  // Turns lines starting with "- " into a real <ul>, and lines
+  // starting with "1. " (etc.) into a real <ol> — the block-level
+  // counterpart to renderInline above. Called after mentions have
+  // already been substituted (so a mention can never get split across
+  // a line boundary), and calls renderInline on each individual line
+  // or list item rather than on the whole multi-line string at once,
+  // so a bold/italic/underline run can never silently span a line
+  // break either.
+  function renderBlocks(text) {
+    const lines = text.split("\n");
+    const out = [];
+    let i = 0;
+    while (i < lines.length) {
+      const bulletMatch = lines[i].match(/^-\s+(.*)$/);
+      const numberedMatch = lines[i].match(/^\d+\.\s+(.*)$/);
+      if (bulletMatch) {
+        const items = [];
+        while (i < lines.length) {
+          const m = lines[i].match(/^-\s+(.*)$/);
+          if (!m) break;
+          items.push(`<li>${renderInline(m[1])}</li>`);
+          i++;
+        }
+        out.push(`<ul>${items.join("")}</ul>`);
+      } else if (numberedMatch) {
+        const items = [];
+        while (i < lines.length) {
+          const m = lines[i].match(/^\d+\.\s+(.*)$/);
+          if (!m) break;
+          items.push(`<li>${renderInline(m[1])}</li>`);
+          i++;
+        }
+        out.push(`<ol>${items.join("")}</ol>`);
+      } else {
+        out.push(renderInline(lines[i]));
+        i++;
+      }
+    }
+    return out.join("\n");
   }
 
   // ---- @mentions ----
@@ -414,7 +463,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   async function renderPostContent(post) {
     return `
       <h3 class="post-title">${escapeHTML(post.title)}</h3>
-      <p class="post-body">${renderLinks(renderAllMention(renderMentions(escapeHTML(post.body), await getAllProfiles())))}</p>
+      <div class="post-body">${renderBlocks(renderAllMention(renderMentions(escapeHTML(post.body), await getAllProfiles())))}</div>
     `;
   }
 
@@ -427,7 +476,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         <input type="text" class="edit-form-title" maxlength="150" required value="${escapeAttr(post.title)}" />
         <textarea class="edit-form-body" rows="3" maxlength="5000" required>${escapeHTML(post.body)}</textarea>
         <div class="composer-toolbar">
+          <button type="button" class="format-bold-btn" aria-label="Bold">B</button>
+          <button type="button" class="format-italic-btn" aria-label="Italic">I</button>
+          <button type="button" class="format-underline-btn" aria-label="Underline">U</button>
           <button type="button" class="link-picker-btn" aria-label="Add link">🔗</button>
+          <button type="button" class="format-bullet-btn" aria-label="Bulleted list">•</button>
+          <button type="button" class="format-numbered-btn" aria-label="Numbered list">1.</button>
           <button type="button" class="emoji-picker-btn" aria-label="Add emoji">🙂</button>
           <div class="edit-form-actions">
             <button type="button" class="btn btn-ghost edit-form-cancel">Cancel</button>
@@ -447,6 +501,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     if (typeof window.attachLinkButton === "function") {
       attachLinkButton(form.querySelector(".link-picker-btn"), bodyInput);
+    }
+    if (typeof window.attachFormatButton === "function") {
+      attachFormatButton(form.querySelector(".format-bold-btn"), bodyInput, "bold");
+      attachFormatButton(form.querySelector(".format-italic-btn"), bodyInput, "italic");
+      attachFormatButton(form.querySelector(".format-underline-btn"), bodyInput, "underline");
+      attachFormatButton(form.querySelector(".format-bullet-btn"), bodyInput, "bullet");
+      attachFormatButton(form.querySelector(".format-numbered-btn"), bodyInput, "numbered");
     }
 
     function cancel() {
@@ -548,7 +609,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       <form class="edit-form">
         <textarea class="edit-form-body" rows="2" maxlength="2000" required>${escapeHTML(comment.body)}</textarea>
         <div class="composer-toolbar">
+          <button type="button" class="format-bold-btn" aria-label="Bold">B</button>
+          <button type="button" class="format-italic-btn" aria-label="Italic">I</button>
+          <button type="button" class="format-underline-btn" aria-label="Underline">U</button>
           <button type="button" class="link-picker-btn" aria-label="Add link">🔗</button>
+          <button type="button" class="format-bullet-btn" aria-label="Bulleted list">•</button>
+          <button type="button" class="format-numbered-btn" aria-label="Numbered list">1.</button>
           <button type="button" class="emoji-picker-btn" aria-label="Add emoji">🙂</button>
           <div class="edit-form-actions">
             <button type="button" class="btn btn-ghost edit-form-cancel">Cancel</button>
@@ -568,6 +634,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (typeof window.attachLinkButton === "function") {
       attachLinkButton(form.querySelector(".link-picker-btn"), bodyInput);
     }
+    if (typeof window.attachFormatButton === "function") {
+      attachFormatButton(form.querySelector(".format-bold-btn"), bodyInput, "bold");
+      attachFormatButton(form.querySelector(".format-italic-btn"), bodyInput, "italic");
+      attachFormatButton(form.querySelector(".format-underline-btn"), bodyInput, "underline");
+      attachFormatButton(form.querySelector(".format-bullet-btn"), bodyInput, "bullet");
+      attachFormatButton(form.querySelector(".format-numbered-btn"), bodyInput, "numbered");
+    }
 
     form.querySelector(".edit-form-cancel").addEventListener("click", () => {
       content.innerHTML = original;
@@ -582,7 +655,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const updated = await window.SCA.updateComment(comment.id, body);
         comment.body = updated.body;
         comment.edited_at = updated.edited_at;
-        content.innerHTML = `<p class="comment-body-text">${renderLinks(renderAllMention(renderMentions(escapeHTML(comment.body), await getAllProfiles())))}</p>`;
+        content.innerHTML = `<div class="comment-body-text">${renderBlocks(renderAllMention(renderMentions(escapeHTML(comment.body), await getAllProfiles())))}</div>`;
         const nameLink = row.querySelector(".post-author-name");
         if (nameLink && !nameLink.nextElementSibling?.classList.contains("edited-tag")) {
           nameLink.insertAdjacentHTML("afterend", ' · <span class="edited-tag">edited</span>');
@@ -619,7 +692,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           <a href="member.html?id=${escapeAttr(comment.user_id)}" class="post-author-avatar-link" aria-label="View ${escapeAttr(commentAuthorName)}'s profile">${avatarHTML(author, "account-avatar--sm")}</a>
           <div class="comment-body">
             <a href="member.html?id=${escapeAttr(comment.user_id)}" class="post-author-name">${escapeHTML(commentAuthorName)}</a>${comment.edited_at ? ' · <span class="edited-tag">edited</span>' : ""}
-            <div class="comment-content"><p class="comment-body-text">${renderLinks(renderAllMention(renderMentions(escapeHTML(comment.body), profiles)))}</p></div>
+            <div class="comment-content"><div class="comment-body-text">${renderBlocks(renderAllMention(renderMentions(escapeHTML(comment.body), profiles)))}</div></div>
             <div class="reaction-bar" data-target-type="comment" data-target-id="${escapeAttr(comment.id)}"></div>
             <div class="comment-actions">
               <button type="button" class="comment-share">Share</button>
@@ -645,6 +718,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       form.className = "comment-form";
       form.innerHTML = `
         <input type="text" placeholder="Write a reply… use @ to mention someone" maxlength="2000" required />
+        <button type="button" class="format-bold-btn" aria-label="Bold">B</button>
+        <button type="button" class="format-italic-btn" aria-label="Italic">I</button>
+        <button type="button" class="format-underline-btn" aria-label="Underline">U</button>
         <button type="button" class="link-picker-btn" aria-label="Add link">🔗</button>
         <button type="button" class="emoji-picker-btn" aria-label="Add emoji">🙂</button>
         <button type="submit" class="btn btn-ghost">Reply</button>
@@ -655,6 +731,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
       if (typeof window.attachLinkButton === "function") {
         attachLinkButton(form.querySelector(".link-picker-btn"), form.querySelector("input"));
+      }
+      if (typeof window.attachFormatButton === "function") {
+        attachFormatButton(form.querySelector(".format-bold-btn"), form.querySelector("input"), "bold");
+        attachFormatButton(form.querySelector(".format-italic-btn"), form.querySelector("input"), "italic");
+        attachFormatButton(form.querySelector(".format-underline-btn"), form.querySelector("input"), "underline");
       }
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -739,6 +820,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   if (postBodyLinkBtn && typeof window.attachLinkButton === "function") {
     attachLinkButton(postBodyLinkBtn, postBody);
+  }
+  if (typeof window.attachFormatButton === "function") {
+    if (postBodyBoldBtn) attachFormatButton(postBodyBoldBtn, postBody, "bold");
+    if (postBodyItalicBtn) attachFormatButton(postBodyItalicBtn, postBody, "italic");
+    if (postBodyUnderlineBtn) attachFormatButton(postBodyUnderlineBtn, postBody, "underline");
+    if (postBodyBulletBtn) attachFormatButton(postBodyBulletBtn, postBody, "bullet");
+    if (postBodyNumberedBtn) attachFormatButton(postBodyNumberedBtn, postBody, "numbered");
   }
   getAllProfiles();
   loadPosts();

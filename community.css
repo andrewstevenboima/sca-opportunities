@@ -255,7 +255,12 @@
 }
 
 .emoji-picker-btn,
-.link-picker-btn {
+.link-picker-btn,
+.format-bold-btn,
+.format-italic-btn,
+.format-underline-btn,
+.format-bullet-btn,
+.format-numbered-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -268,11 +273,35 @@
   cursor: pointer;
   font-size: 1.05rem;
   line-height: 1;
+  color: var(--ink);
+  font-family: inherit;
 }
 
 .emoji-picker-btn:hover,
-.link-picker-btn:hover {
+.link-picker-btn:hover,
+.format-bold-btn:hover,
+.format-italic-btn:hover,
+.format-underline-btn:hover,
+.format-bullet-btn:hover,
+.format-numbered-btn:hover {
   border-color: var(--gold);
+}
+
+.format-bold-btn {
+  font-weight: 700;
+}
+
+.format-italic-btn {
+  font-style: italic;
+}
+
+.format-underline-btn {
+  text-decoration: underline;
+}
+
+.format-bullet-btn,
+.format-numbered-btn {
+  font-size: 0.9375rem;
 }
 
 .emoji-picker-panel {
@@ -787,17 +816,34 @@
   background: var(--gold-wash);
 }
 
-.thread-bubble p {
+.thread-bubble-text {
   margin: 0;
   font-size: 0.9375rem;
   white-space: pre-wrap;
   overflow-wrap: break-word;
 }
 
-.thread-bubble p a {
+.thread-bubble-text a {
   color: inherit;
   text-decoration: underline;
   word-break: break-word;
+}
+
+.post-body ul,
+.post-body ol,
+.comment-body-text ul,
+.comment-body-text ol,
+.thread-bubble-text ul,
+.thread-bubble-text ol {
+  margin: 0.35em 0 0.35em 1.25em;
+  padding: 0;
+  white-space: normal;
+}
+
+.post-body li,
+.comment-body-text li,
+.thread-bubble-text li {
+  margin: 0.15em 0;
 }
 
 .thread-bubble-foot {
@@ -832,22 +878,33 @@
 
 .thread-form {
   display: flex;
-  gap: var(--s-3);
-  padding: var(--s-4) var(--s-5);
+  flex-direction: column;
+  gap: var(--s-2);
+  padding: var(--s-3) var(--s-5) var(--s-4);
   border-top: 1px solid var(--line);
   flex-shrink: 0;
 }
 
-.thread-form input {
+.thread-input-row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--s-3);
+}
+
+.thread-input-row textarea {
   flex: 1;
+  resize: none;
+  max-height: 140px;
+  overflow-y: auto;
   padding: 0.625rem 0.875rem;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-sm);
   font-family: inherit;
   font-size: 0.9375rem;
+  line-height: 1.4;
 }
 
-.thread-form input:focus {
+.thread-input-row textarea:focus {
   outline: none;
   border-color: var(--gold);
   box-shadow: 0 0 0 3px var(--gold-wash);
@@ -954,7 +1011,7 @@
     max-width: 85%;
   }
 
-  .thread-form input {
+  .thread-input-row textarea {
     min-height: 44px;
     font-size: 16px; /* prevents iOS zoom-on-focus */
   }

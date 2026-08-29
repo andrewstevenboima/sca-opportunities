@@ -92,11 +92,11 @@ body {
      right edge. Scoped overflow-x:auto containers (e.g. wide tables)
      are unaffected — this only clips the document's own axis. */
   overflow-x: hidden;
-  /* Stops an overscrolled swipe at the top/bottom of the page from
-     chaining into the browser's own pull-to-refresh/rubber-band —
-     one of the most obvious "this is just a website" tells on
-     mobile once installed and running standalone. */
-  overscroll-behavior-y: none;
+  /* overscroll-behavior-y removed from body — on iOS Safari and many
+     Android browsers this property on body swallows ALL scroll events,
+     making the entire page impossible to scroll with finger or mouse
+     wheel. Moved to .site-nav (the drawer) as contain, where it
+     actually prevents the pull-to-refresh bleed. */
   /* Removes the gray tap-flash Chrome/Android draws on every link
      and button by default — native apps don't have it, and with it
      every tap reads as "web page" instead of "app". */
@@ -432,6 +432,68 @@ em { font-style: italic; color: var(--gold); }
   height: 1px;
   background: linear-gradient(to right, transparent, var(--gold-soft), transparent);
 }
+/* -------------------------------------------------------------
+   Scroll indicator — mouse icon with animated bouncing dot
+   Sits at the bottom-centre of .hero and .page-header.
+   JS adds .is-hidden once the user scrolls past the section.
+   ------------------------------------------------------------- */
+.scroll-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  position: absolute;
+  bottom: 1.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  text-decoration: none;
+  color: inherit;
+  opacity: 1;
+  transition: opacity 0.4s ease;
+  z-index: 10;
+  pointer-events: auto;
+}
+.scroll-indicator.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+.scroll-mouse {
+  width: 26px;
+  height: 40px;
+  border: 2px solid currentColor;
+  border-radius: 13px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+.scroll-dot {
+  width: 4px;
+  height: 8px;
+  background: currentColor;
+  border-radius: 2px;
+  position: absolute;
+  top: 5px;
+  animation: scrollDot 1.6s ease-in-out infinite;
+}
+@keyframes scrollDot {
+  0%   { transform: translateY(0);    opacity: 1; }
+  60%  { transform: translateY(14px); opacity: 0.2; }
+  100% { transform: translateY(0);    opacity: 1; }
+}
+.scroll-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.hero-photo .scroll-indicator { color: #fff; }
+.page-header {
+  position: relative;
+}
+.page-header .scroll-indicator { color: var(--ink-soft); }
+
+
 
 /* -------------------------------------------------------------
    Quick start
@@ -683,6 +745,10 @@ em { font-style: italic; color: var(--gold); }
   transition: all var(--dur) var(--ease);
   position: relative;
   animation: fadeUp 400ms var(--ease) backwards;
+  cursor: pointer;
+  /* Allow vertical scroll through cards on touch — prevents the
+     browser from blocking scroll while deciding if a touch is a tap */
+  touch-action: pan-y;
 }
 
 .opp-card:hover {
@@ -1745,6 +1811,8 @@ em { font-style: italic; color: var(--gold); }
     transition: transform 0.3s var(--ease);
     z-index: 260;
     overflow-y: auto;
+    /* Prevent pull-to-refresh inside the drawer only, not the whole page */
+    overscroll-behavior-y: contain;
   }
   .site-nav.is-open {
     transform: translateX(0);

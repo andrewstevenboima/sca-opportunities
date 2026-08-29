@@ -118,6 +118,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   wireAnnouncementBar();
   loadHomepagePreview();
   wireScrollReveal();
+  wireScrollIndicator();
 });
 
 // A single-post teaser pointing new/signed-out visitors toward the
@@ -990,10 +991,21 @@ function renderGrid() {
 // Toggle card expand/collapse
 function wireExpandButtons() {
   document.querySelectorAll(".opp-card").forEach((card) => {
+    // Track touch movement to distinguish a tap from a scroll gesture
+    let touchStartY = 0;
+    let isTouchScrolling = false;
+    card.addEventListener("touchstart", (e) => {
+      touchStartY = e.touches[0].clientY;
+      isTouchScrolling = false;
+    }, { passive: true });
+    card.addEventListener("touchmove", (e) => {
+      if (Math.abs(e.touches[0].clientY - touchStartY) > 8) isTouchScrolling = true;
+    }, { passive: true });
     // Click on card itself (except on buttons/links) expands
     card.addEventListener("click", (e) => {
       // Don't expand if clicking a button, link, or the bookmark
       if (e.target.closest("a") || e.target.closest(".opp-bookmark")) return;
+      if (isTouchScrolling) return; // was a scroll, not a tap
       const isExpanded = card.classList.contains("is-expanded");
       card.classList.toggle("is-expanded");
       const btn = card.querySelector(".opp-expand-btn");
@@ -1004,6 +1016,20 @@ function wireExpandButtons() {
       }
     });
   });
+}
+
+// Fade the scroll indicator out once the user scrolls past the section
+function wireScrollIndicator() {
+  const indicator = document.getElementById("scroll-indicator");
+  if (!indicator) return;
+  const section = indicator.closest("section");
+  if (!section) return;
+  if (window.scrollY > 60) { indicator.classList.add("is-hidden"); return; }
+  const observer = new IntersectionObserver(
+    ([entry]) => indicator.classList.toggle("is-hidden", !entry.isIntersecting),
+    { threshold: 0.1 }
+  );
+  observer.observe(section);
 }
 
 function cardHTML(o, i) {

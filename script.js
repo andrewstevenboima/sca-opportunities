@@ -83,7 +83,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Wire mobile nav (all pages)
   wireMobileNav();
 
-  // Wire the "Community" nav dropdown (all pages)
+  // Wire the header dropdowns: Explore, Community (all pages)
   wireNavDropdown();
 
   // Toggle "Log In" / "My Account" nav links (all pages)
@@ -330,30 +330,34 @@ function showToast(message) {
   setTimeout(() => toast.remove(), 6000);
 }
 
-// "Community" nav dropdown (Common Room / Students / Messages)
+// Header dropdowns ("Explore", "Community"): click to open, click
+// elsewhere or press Escape to close; opening one closes the others.
 function wireNavDropdown() {
-  const dropdown = document.getElementById("nav-community-dropdown");
-  const toggle = document.getElementById("nav-dropdown-toggle");
-  if (!dropdown || !toggle) return;
+  const dropdowns = Array.from(document.querySelectorAll(".site-nav .nav-dropdown"));
+  if (!dropdowns.length) return;
+  const close = (d) => {
+    d.classList.remove("is-open");
+    const t = d.querySelector(".nav-dropdown-toggle");
+    if (t) t.setAttribute("aria-expanded", "false");
+  };
 
-  toggle.addEventListener("click", (e) => {
-    e.stopPropagation();
-    const isOpen = dropdown.classList.toggle("is-open");
-    toggle.setAttribute("aria-expanded", String(isOpen));
+  dropdowns.forEach((dropdown) => {
+    const toggle = dropdown.querySelector(".nav-dropdown-toggle");
+    if (!toggle) return;
+    toggle.addEventListener("click", (e) => {
+      e.stopPropagation();
+      dropdowns.filter((d) => d !== dropdown).forEach(close);
+      const isOpen = dropdown.classList.toggle("is-open");
+      toggle.setAttribute("aria-expanded", String(isOpen));
+    });
   });
 
   document.addEventListener("click", (e) => {
-    if (!dropdown.contains(e.target)) {
-      dropdown.classList.remove("is-open");
-      toggle.setAttribute("aria-expanded", "false");
-    }
+    dropdowns.forEach((d) => { if (!d.contains(e.target)) close(d); });
   });
 
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") {
-      dropdown.classList.remove("is-open");
-      toggle.setAttribute("aria-expanded", "false");
-    }
+    if (e.key === "Escape") dropdowns.forEach(close);
   });
 }
 

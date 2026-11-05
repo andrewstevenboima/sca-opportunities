@@ -505,7 +505,7 @@ em { font-style: italic; color: var(--gold); }
 
 .quick-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: var(--s-4);
   margin-top: var(--s-6);
 }
@@ -1202,9 +1202,9 @@ em { font-style: italic; color: var(--gold); }
   background-color: var(--ink);
   background-image: url('assets/hero-photo.jpg');
   background-size: cover;
-  background-position: center 38%;
+  background-position: right center;
   color: var(--cream);
-  min-height: 540px;
+  min-height: 560px;
   display: flex;
   align-items: center;
   padding-top: var(--s-8);
@@ -1214,11 +1214,13 @@ em { font-style: italic; color: var(--gold); }
 .hero.hero-photo .hero-overlay {
   position: absolute;
   inset: 0;
+  /* Dark behind the text on the left, clear over the portrait on the right */
   background: linear-gradient(
-    135deg,
-    rgba(20, 20, 30, 0.82) 0%,
-    rgba(20, 20, 30, 0.65) 50%,
-    rgba(30, 25, 15, 0.55) 100%
+    90deg,
+    rgba(18, 16, 14, 0.9) 0%,
+    rgba(18, 16, 14, 0.72) 40%,
+    rgba(18, 16, 14, 0.18) 72%,
+    rgba(18, 16, 14, 0) 100%
   );
   z-index: 1;
 }
@@ -1226,6 +1228,11 @@ em { font-style: italic; color: var(--gold); }
 .hero.hero-photo .hero-inner {
   position: relative;
   z-index: 2;
+  max-width: var(--container);
+}
+
+.hero.hero-photo .hero-inner > * {
+  max-width: 600px;
 }
 
 /* Text treatments on photo background */
@@ -1298,8 +1305,16 @@ em { font-style: italic; color: var(--gold); }
 @media (max-width: 768px) {
   .hero.hero-photo {
     background-image: url('assets/hero-photo-mobile.jpg');
-    min-height: 480px;
-    background-position: center 35%;
+    min-height: 520px;
+    background-position: center 20%;
+  }
+  .hero.hero-photo .hero-overlay {
+    background: linear-gradient(
+      180deg,
+      rgba(18, 16, 14, 0.45) 0%,
+      rgba(18, 16, 14, 0.8) 55%,
+      rgba(18, 16, 14, 0.92) 100%
+    );
   }
 }
 
@@ -1973,6 +1988,7 @@ em { font-style: italic; color: var(--gold); }
 
 .quick-grid .reveal:nth-child(2) { transition-delay: 0.08s; }
 .quick-grid .reveal:nth-child(3) { transition-delay: 0.16s; }
+.quick-grid .reveal:nth-child(4) { transition-delay: 0.24s; }
 .values-grid .reveal:nth-child(2) { transition-delay: 0.08s; }
 .values-grid .reveal:nth-child(3) { transition-delay: 0.16s; }
 .values-grid .reveal:nth-child(4) { transition-delay: 0.24s; }

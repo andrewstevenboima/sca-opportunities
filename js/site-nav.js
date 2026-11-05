@@ -17,6 +17,29 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Header dropdowns (Explore, Community): same behaviour as script.js.
+  const dropdowns = Array.from(document.querySelectorAll(".site-nav .nav-dropdown"));
+  const closeDropdown = (d) => {
+    d.classList.remove("is-open");
+    const t = d.querySelector(".nav-dropdown-toggle");
+    if (t) t.setAttribute("aria-expanded", "false");
+  };
+  dropdowns.forEach((dropdown) => {
+    const t = dropdown.querySelector(".nav-dropdown-toggle");
+    if (!t) return;
+    t.addEventListener("click", (e) => {
+      e.stopPropagation();
+      dropdowns.filter((d) => d !== dropdown).forEach(closeDropdown);
+      t.setAttribute("aria-expanded", String(dropdown.classList.toggle("is-open")));
+    });
+  });
+  document.addEventListener("click", (e) => {
+    dropdowns.forEach((d) => { if (!d.contains(e.target)) closeDropdown(d); });
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") dropdowns.forEach(closeDropdown);
+  });
+
   const loginLink = document.getElementById("nav-login");
   const accountLink = document.getElementById("nav-account");
   if ((loginLink || accountLink) && window.SCA && window.SCA.ready) {

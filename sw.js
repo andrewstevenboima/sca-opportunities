@@ -6,7 +6,7 @@
    files) — the activate handler below deletes any cache whose name
    doesn't match the current version.
    ============================================================= */
-const CACHE_VERSION = "v1";
+const CACHE_VERSION = "v2";
 const CACHE_NAME = `sca-opportunities-${CACHE_VERSION}`;
 
 // The "app shell" — precached on install so the site opens instantly
@@ -16,6 +16,7 @@ const PRECACHE_URLS = [
   "/about.html",
   "/account.html",
   "/community.html",
+  "/courses.html",
   "/index.html",
   "/login.html",
   "/match.html",

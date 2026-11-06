@@ -49,6 +49,7 @@ const state = {
   search: "",
   location: "",
   country: "",          // NEW: country substring filter (from marquee)
+  suggestedCountry: "", // the student's profile country, offered as a filter
   year: "",
   remoteOnly: false,
   openOnly: true,       // closed opportunities are hidden unless asked for
@@ -249,26 +250,32 @@ function wireScrollReveal() {
   items.forEach((el) => revealObserver.observe(el));
 }
 
-// Default the country filter to a logged-in student's own profile
-// country, so they land on opportunities near them — never a hard
-// restriction, just a starting point they can clear with one click.
-// An explicit ?country= URL param (applied right after this, in
-// applyURLParams) always wins over this default.
+// A logged-in student's profile country is offered as a one-click
+// filter ("Show only Rwanda"), never applied on its own: students see
+// every opportunity until they choose to narrow it down.
 async function applyProfileCountryDefault() {
   if (!currentUserId) return;
   try {
     const profile = await window.SCA.getProfile(currentUserId);
-    if (!profile?.country) return;
-    state.country = profile.country;
-    const pillWrap = document.getElementById("country-pill-wrap");
-    const pillName = document.getElementById("country-pill-name");
-    if (pillWrap && pillName) {
-      pillName.textContent = profile.country;
-      pillWrap.hidden = false;
-    }
+    const raw = String(profile?.country || "").trim().toLowerCase();
+    const match = raw && COUNTRY_REGISTRY.find((c) =>
+      c.name.toLowerCase() === raw || c.aliases.includes(raw));
+    if (match) state.suggestedCountry = match.name;
   } catch (err) {
-    // Not fatal — just skip the default if the profile fetch fails.
+    // Not fatal: no suggestion if the profile fetch fails.
   }
+}
+
+// The "Show only <country>" button: shown when the student has a
+// profile country that has opportunities and no country filter is on.
+function updateNearMe() {
+  const btn = document.getElementById("near-me");
+  if (!btn) return;
+  const c = state.suggestedCountry;
+  const n = c ? (state.countryCounts || {})[c] || 0 : 0;
+  const show = Boolean(c && n && !state.location && !state.country);
+  btn.hidden = !show;
+  if (show) btn.textContent = `Show only ${c} (${n})`;
 }
 
 // Show "My Account" instead of "Log In" once a Supabase session exists
@@ -927,6 +934,7 @@ function matchesSearch(o, tokens) {
 }
 
 function applyFilters() {
+  updateNearMe();
   const q = state.search.trim().toLowerCase();
 
   // Every filter except the category tab, so each tab can show how many
@@ -1252,6 +1260,17 @@ function wireEvents() {
 
   const loc = $("#filter-location");
   if (loc) loc.addEventListener("change", (e) => { state.location = e.target.value; applyFilters(); });
+
+  // "Show only <country>": sets the Country dropdown, so it can be
+  // changed or cleared there like any other choice.
+  const nearMe = $("#near-me");
+  if (nearMe) nearMe.addEventListener("click", () => {
+    const c = state.suggestedCountry;
+    if (!c) return;
+    state.location = c;
+    if (loc) loc.value = c;
+    applyFilters();
+  });
 
   const yr = $("#filter-year");
   if (yr) yr.addEventListener("change", (e) => { state.year = e.target.value; applyFilters(); });

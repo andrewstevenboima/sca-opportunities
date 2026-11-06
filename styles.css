@@ -3009,3 +3009,11 @@ em { font-style: italic; color: var(--gold); }
   .opp-grid.is-list .oc-title { -webkit-line-clamp: 2; }
   .oc-deadline { max-width: 100%; }
 }
+
+/* "Show only <your country>": a suggestion, not an applied filter */
+.near-me {
+  font: inherit; font-size: 0.85rem; font-weight: 600;
+  padding: 0.3rem 0.75rem; border-radius: 999px; cursor: pointer;
+  border: 1px dashed currentColor; background: transparent; color: var(--navy);
+}
+.near-me:hover, .near-me:focus-visible { background: var(--gold-wash); }

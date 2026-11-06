@@ -54,14 +54,14 @@ const state = {
   remoteOnly: false,
   openOnly: true,       // closed opportunities are hidden unless asked for
   sort: "newest",       // newest | closing | az
-  view: "cards",        // cards | list (remembered per browser)
+  view: "list",         // list | cards (remembered per browser)
   shown: 0,             // how many of `filtered` are on the page
   bookmarks: new Set(), // in-memory bookmarks for the session
 };
 
 // Opportunities are shown a page at a time: with hundreds of listings,
 // rendering them all made the page tens of thousands of pixels tall.
-const PAGE_SIZE = 18;
+const PAGE_SIZE = 10;
 try {
   const savedView = localStorage.getItem("sca-opp-view");
   if (savedView === "list" || savedView === "cards") state.view = savedView;

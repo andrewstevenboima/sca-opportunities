@@ -393,7 +393,7 @@ function cardHTML(r) {
         <h4>You already meet</h4>
         ${r.met.map((x) => `<p class="rc-item rc-i-met">${esc(x)}</p>`).join("")}
       </div>` : ""}
-      <a class="rc-apply" href="${safeHref(o.apply_link, "#")}" target="_blank" rel="noopener">View listing →</a>
+      <a class="rc-apply" href="${safeHref(o.apply_link, "#")}" target="_blank" rel="noopener">View details ↗</a>
     </div>
 
     <button type="button" class="rc-toggle">Why? ▼</button>

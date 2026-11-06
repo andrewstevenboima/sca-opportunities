@@ -2832,8 +2832,8 @@ em { font-style: italic; color: var(--gold); }
 /* =============================================================
    Opportunities: cards (v2), list view, sort, paging, mobile filters
    One accent per card (the category colour), the facts that decide
-   whether to apply (deadline, eligibility) up front, and the rest
-   behind "Details". With hundreds of listings the page shows a page
+   whether to apply (deadline, eligibility) up front, and one button to
+   the full details on the organisation's own website. With hundreds of listings the page shows a page
    at a time and the list view fits ten or more on a screen.
    ============================================================= */
 .sr-only {
@@ -2904,34 +2904,27 @@ em { font-style: italic; color: var(--gold); }
   margin: 2px 0 0; font-size: 0.88rem; line-height: 1.55; color: var(--ink-soft);
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
-.oc-more { display: none; font-size: 0.88rem; line-height: 1.6; color: var(--ink-soft); }
-.oc-more p { margin: 0 0 8px; }
-.oc.is-open .oc-desc { display: none; }
-.oc.is-open .oc-more { display: block; }
-.oc-tags { display: flex; flex-wrap: wrap; gap: 6px; }
-.oc-tags span { font-size: 0.75rem; color: var(--ink-mute); border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; }
-
 .oc-actions {
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
   margin-top: auto; padding-top: 10px; border-top: 1px solid var(--line);
 }
-.oc-toggle {
-  background: none; border: 0; cursor: pointer; padding: 6px 0;
-  font-size: 0.85rem; font-weight: 500; color: var(--ink-soft);
+.oc-source {
+  min-width: 0; font-size: 0.78rem; color: var(--ink-mute);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.oc-toggle:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
-.oc-apply {
+.oc-view {
+  flex: none; margin-left: auto;
   font-size: 0.85rem; font-weight: 600; color: var(--white); background: var(--ink);
-  padding: 7px 16px; border-radius: 8px; text-decoration: none;
+  padding: 7px 14px; border-radius: 8px; text-decoration: none; white-space: nowrap;
 }
-.oc-apply:hover { background: #000; }
+.oc-view:hover, .oc-view:focus-visible { background: #000; }
 
 /* List view: one row per opportunity, for scanning long results */
 .opp-grid.is-list { grid-template-columns: 1fr; gap: 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
 .opp-grid.is-list .oc {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
-  grid-template-areas: "top facts actions" "heading facts actions" "where facts actions" "more more more";
+  grid-template-areas: "top facts actions" "heading facts actions" "where facts actions";
   column-gap: 18px; row-gap: 2px; align-items: center;
   border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 14px 18px;
 }
@@ -2943,8 +2936,8 @@ em { font-style: italic; color: var(--gold); }
 .opp-grid.is-list .oc-where { grid-area: where; }
 .opp-grid.is-list .oc-facts { grid-area: facts; justify-content: flex-end; }
 .opp-grid.is-list .oc-desc { display: none; }
-.opp-grid.is-list .oc-more { grid-area: more; padding-top: 8px; }
-.opp-grid.is-list .oc-actions { grid-area: actions; border: 0; padding: 0; gap: 14px; margin: 0; }
+.opp-grid.is-list .oc-actions { grid-area: actions; border: 0; padding: 0; margin: 0; }
+.opp-grid.is-list .oc-source { display: none; }
 
 /* Results header tools */
 .results-tools { margin-left: auto; display: flex; align-items: center; gap: 10px; }

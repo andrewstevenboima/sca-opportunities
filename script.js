@@ -51,9 +51,20 @@ const state = {
   country: "",          // NEW: country substring filter (from marquee)
   year: "",
   remoteOnly: false,
-  openOnly: false,
+  openOnly: true,       // closed opportunities are hidden unless asked for
+  sort: "newest",       // newest | closing | az
+  view: "cards",        // cards | list (remembered per browser)
+  shown: 0,             // how many of `filtered` are on the page
   bookmarks: new Set(), // in-memory bookmarks for the session
 };
+
+// Opportunities are shown a page at a time: with hundreds of listings,
+// rendering them all made the page tens of thousands of pixels tall.
+const PAGE_SIZE = 18;
+try {
+  const savedView = localStorage.getItem("sca-opp-view");
+  if (savedView === "list" || savedView === "cards") state.view = savedView;
+} catch (_) { /* storage unavailable: keep the default */ }
 
 /* -------------------------------------------------------------
    DOM refs
@@ -918,8 +929,9 @@ function matchesSearch(o, tokens) {
 function applyFilters() {
   const q = state.search.trim().toLowerCase();
 
-  state.filtered = state.all.filter((o) => {
-    if (state.category !== "All" && o.category !== state.category) return false;
+  // Every filter except the category tab, so each tab can show how many
+  // opportunities it would have with the current search and filters.
+  const base = state.all.filter((o) => {
 
     // Country dropdown and country ribbon share one index.
     if (state.location && !(o._countries || []).includes(state.location)) return false;
@@ -947,15 +959,46 @@ function applyFilters() {
 
     return true;
   });
+  state.base = base;
+  state.filtered = base.filter((o) => state.category === "All" || o.category === state.category);
 
+  sortFiltered();
+  state.shown = 0;
   renderGrid();
   updateTabCounts();
+  updateFilterBadge();
+}
+
+function sortFiltered() {
+  if (state.sort === "closing") {
+    // Dated deadlines soonest first; rolling or undated ones after them.
+    const key = (o) => {
+      const d = parseDeadline(o.deadline);
+      return d ? d.getTime() : Number.MAX_SAFE_INTEGER;
+    };
+    state.filtered.sort((a, b) => key(a) - key(b));
+  } else if (state.sort === "az") {
+    state.filtered.sort((a, b) => String(a.title || "").localeCompare(String(b.title || "")));
+  } else {
+    state.filtered = sortByRecency(state.filtered);
+  }
+}
+
+// How many filters beyond the defaults are on: shown on the mobile
+// "Filters" button so a collapsed panel never hides an active filter.
+function updateFilterBadge() {
+  const badge = document.getElementById("filters-active-count");
+  if (!badge) return;
+  const n = [state.location, state.country, state.year, state.remoteOnly, !state.openOnly].filter(Boolean).length;
+  badge.textContent = n ? String(n) : "";
+  badge.hidden = n === 0;
 }
 
 // Compute count of opportunities per category and inject into tab labels
 function updateTabCounts() {
-  const counts = { All: state.all.length };
-  state.all.forEach((o) => {
+  const pool = state.base || state.all;
+  const counts = { All: pool.length };
+  pool.forEach((o) => {
     const c = o.category || "Other";
     counts[c] = (counts[c] || 0) + 1;
   });
@@ -973,52 +1016,74 @@ function updateTabCounts() {
 function renderGrid() {
   grid.setAttribute("aria-busy", "false");
   errorEl.hidden = true;
+  grid.classList.toggle("is-list", state.view === "list");
 
-  resultsCount.textContent = `${state.filtered.length} ${
-    state.filtered.length === 1 ? "opportunity" : "opportunities"
-  }`;
+  const total = state.filtered.length;
+  resultsCount.textContent = `${total} ${total === 1 ? "opportunity" : "opportunities"}`;
 
-  if (state.filtered.length === 0) {
+  if (total === 0) {
     grid.innerHTML = "";
     grid.hidden = true;
     empty.hidden = false;
+    updateLoadMore();
     return;
   }
 
   grid.hidden = false;
   empty.hidden = true;
-  grid.innerHTML = state.filtered.map((o, i) => cardHTML(o, i)).join("");
-  wireBookmarkButtons();
-  wireExpandButtons();
+  state.shown = Math.min(Math.max(state.shown, PAGE_SIZE), total);
+  grid.innerHTML = state.filtered.slice(0, state.shown).map((o, i) => cardHTML(o, i)).join("");
+  updateLoadMore();
 }
 
-// Toggle card expand/collapse
-function wireExpandButtons() {
-  document.querySelectorAll(".opp-card").forEach((card) => {
-    // Track touch movement to distinguish a tap from a scroll gesture
-    let touchStartY = 0;
-    let isTouchScrolling = false;
-    card.addEventListener("touchstart", (e) => {
-      touchStartY = e.touches[0].clientY;
-      isTouchScrolling = false;
-    }, { passive: true });
-    card.addEventListener("touchmove", (e) => {
-      if (Math.abs(e.touches[0].clientY - touchStartY) > 8) isTouchScrolling = true;
-    }, { passive: true });
-    // Click on card itself (except on buttons/links) expands
-    card.addEventListener("click", (e) => {
-      // Don't expand if clicking a button, link, or the bookmark
-      if (e.target.closest("a") || e.target.closest(".opp-bookmark")) return;
-      if (isTouchScrolling) return; // was a scroll, not a tap
-      const isExpanded = card.classList.contains("is-expanded");
-      card.classList.toggle("is-expanded");
-      const btn = card.querySelector(".opp-expand-btn");
-      if (btn) {
-        const label = btn.querySelector(".opp-expand-label");
-        if (label) label.textContent = isExpanded ? "Read more" : "Show less";
-        btn.setAttribute("aria-label", isExpanded ? "Show details" : "Hide details");
-      }
-    });
+// Append the next page without re-rendering (and re-animating) the rest.
+function showMore() {
+  const from = state.shown;
+  state.shown = Math.min(from + PAGE_SIZE, state.filtered.length);
+  grid.insertAdjacentHTML(
+    "beforeend",
+    state.filtered.slice(from, state.shown).map((o, i) => cardHTML(o, i)).join("")
+  );
+  updateLoadMore();
+  // Move keyboard focus to the first new card's title link for screen readers.
+  const firstNew = grid.querySelectorAll(".oc")[from];
+  const focusable = firstNew && firstNew.querySelector(".oc-title");
+  if (focusable) focusable.focus({ preventScroll: true });
+}
+
+function updateLoadMore() {
+  const wrap = document.getElementById("opp-more");
+  if (!wrap) return;
+  const total = state.filtered.length;
+  wrap.hidden = total === 0;
+  const showing = document.getElementById("opp-showing");
+  if (showing) showing.textContent = `Showing ${state.shown} of ${total}`;
+  const btn = document.getElementById("opp-load-more");
+  if (btn) {
+    const left = total - state.shown;
+    btn.hidden = left <= 0;
+    btn.textContent = `Show ${Math.min(left, PAGE_SIZE)} more`;
+  }
+}
+
+// One listener for every card, present and future: expand, save, bookmark.
+function wireGrid() {
+  if (!grid || grid.dataset.wired) return;
+  grid.dataset.wired = "1";
+  grid.addEventListener("click", async (e) => {
+    const bookmark = e.target.closest(".oc-save");
+    if (bookmark) {
+      e.preventDefault();
+      await toggleBookmark(bookmark);
+      return;
+    }
+    const toggle = e.target.closest(".oc-toggle");
+    if (toggle) {
+      const card = toggle.closest(".oc");
+      const open = card.classList.toggle("is-open");
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+      toggle.querySelector("span").textContent = open ? "Less" : "Details";
+    }
   });
 }
 
@@ -1043,63 +1108,61 @@ function cardHTML(o, i) {
     .split(",")
     .map((t) => t.trim())
     .filter(Boolean)
-    .slice(0, 4);
-
-  const deadlineClass = deadlineBadgeClass(o.deadline);
-  const deadlineText = formatDeadline(o.deadline);
+    .slice(0, 5);
+  const deadline = deadlineInfo(o.deadline);
   const mode = detectMode(o);
+  const where = [o.organization, o.location].filter(Boolean).map(escapeHTML).join(" · ");
+  const detailsId = `oc-more-${id.replace(/[^a-zA-Z0-9_-]/g, "")}-${i}`;
 
   return `
-    <article class="opp-card" data-card-id="${id}" style="animation-delay: ${Math.min(i, 8) * 40}ms">
-      ${mode ? `<span class="opp-mode-badge mode-${mode.toLowerCase()}">${mode}</span>` : ""}
-      <div class="opp-card-head">
-        <span class="opp-category">${escapeHTML(o.category || "Opportunity")}<span class="opp-verified" title="Manually verified by SCA Opportunities">Verified</span></span>
-        <button class="opp-bookmark" aria-pressed="${bookmarked}" aria-label="Save this opportunity" data-id="${id}">
-          ${bookmarked ? "★" : "☆"}
-        </button>
+    <article class="oc" data-card-id="${id}">
+      <div class="oc-top">
+        <span class="oc-cat oc-cat-${escapeAttr(String(o.category || "other").toLowerCase())}">${escapeHTML(o.category || "Opportunity")}</span>
+        ${mode ? `<span class="oc-mode">${mode}</span>` : ""}
+        <button class="oc-save" type="button" aria-pressed="${bookmarked}" aria-label="${bookmarked ? "Remove from saved" : "Save this opportunity"}" data-id="${id}">${bookmarked ? "★" : "☆"}</button>
       </div>
 
-      <h3 class="opp-title">${escapeHTML(o.title || "Untitled")}</h3>
-      <p class="opp-org">${escapeHTML(o.organization || "")}${
-        o.location ? ` · ${escapeHTML(o.location)}` : ""
-      }</p>
+      <h3 class="oc-heading"><a class="oc-title" href="${safeHref(o.apply_link, "#")}" target="_blank" rel="noopener">${escapeHTML(o.title || "Untitled")}</a></h3>
+      ${where ? `<p class="oc-where">${where}</p>` : ""}
 
-      <div class="opp-meta">
-        ${
-          o.eligibility_year
-            ? `<span><span class="opp-meta-label">Eligible:</span> ${escapeHTML(
-                o.eligibility_year
-              )}</span>`
-            : ""
-        }
-        ${
-          deadlineText
-            ? `<span class="opp-deadline ${deadlineClass}"><span class="opp-meta-label">Deadline:</span> ${deadlineText}</span>`
-            : ""
-        }
+      <div class="oc-facts">
+        ${deadline ? `<span class="oc-deadline ${deadline.cls}"${deadline.title ? ` title="${escapeAttr(deadline.title)}"` : ""}>${deadline.label}</span>` : ""}
+        ${o.eligibility_year ? `<span class="oc-elig">${escapeHTML(o.eligibility_year)}</span>` : ""}
       </div>
 
-      ${o.description ? `<p class="opp-desc">${escapeHTML(o.description)}</p>` : ""}
+      ${o.description ? `<p class="oc-desc">${escapeHTML(o.description)}</p>` : ""}
 
-      ${
-        tags.length
-          ? `<div class="opp-tags">${tags
-              .map((t) => `<span class="opp-tag">${escapeHTML(t)}</span>`)
-              .join("")}</div>`
-          : ""
-      }
-
-      <div class="opp-actions">
-        <a href="${safeHref(o.apply_link, "#")}" target="_blank" rel="noopener" class="opp-apply">
-          Apply →
-        </a>
+      <div class="oc-more" id="${detailsId}">
+        ${o.description ? `<p>${escapeHTML(o.description)}</p>` : ""}
+        ${o.eligibility_nationality ? `<p><strong>Who can apply:</strong> ${escapeHTML(o.eligibility_nationality)}</p>` : ""}
+        ${tags.length ? `<div class="oc-tags">${tags.map((t) => `<span>${escapeHTML(t)}</span>`).join("")}</div>` : ""}
       </div>
 
-      <button class="opp-expand-btn" type="button" aria-label="Show details">
-        <span class="opp-expand-label">Read more</span>
-      </button>
+      <div class="oc-actions">
+        <button class="oc-toggle" type="button" aria-expanded="false" aria-controls="${detailsId}"><span>Details</span></button>
+        <a href="${safeHref(o.apply_link, "#")}" target="_blank" rel="noopener" class="oc-apply">Apply</a>
+      </div>
     </article>
   `;
+}
+
+/** Deadline as a short, readable label with an urgency class. */
+function deadlineInfo(raw) {
+  if (!raw) return null;
+  const d = parseDeadline(raw);
+  if (!d) {
+    // "Rolling (annual cycles by partner university)" -> "Rolling"; the
+    // full text stays available on hover.
+    const full = String(raw).trim();
+    const short = /^rolling/i.test(full) ? "Rolling" : /^annual/i.test(full) ? "Annual" : full;
+    return { label: escapeHTML(short), cls: "is-rolling", title: full };
+  }
+  const days = Math.ceil((d.getTime() - Date.now()) / 86400000);
+  const date = formatDeadline(raw);
+  if (days < 0) return { label: `Closed ${date}`, cls: "is-closed" };
+  if (days === 0) return { label: "Closes today", cls: "is-soon" };
+  if (days <= 14) return { label: `Closes in ${days} day${days === 1 ? "" : "s"}`, cls: "is-soon" };
+  return { label: `Closes ${date}`, cls: "is-open" };
 }
 
 // Detect Onsite/Remote/Hybrid from location or remote field
@@ -1115,39 +1178,33 @@ function detectMode(o) {
   return "Onsite";
 }
 
-function wireBookmarkButtons() {
-  $$(".opp-bookmark").forEach((btn) => {
-    btn.addEventListener("click", async (e) => {
-      e.preventDefault();
-      const id = btn.dataset.id;
-      const wasBookmarked = state.bookmarks.has(id);
+async function toggleBookmark(btn) {
+  const id = btn.dataset.id;
+  const wasBookmarked = state.bookmarks.has(id);
 
-      if (wasBookmarked) {
-        state.bookmarks.delete(id);
-        btn.setAttribute("aria-pressed", "false");
-        btn.textContent = "☆";
-      } else {
-        state.bookmarks.add(id);
-        btn.setAttribute("aria-pressed", "true");
-        btn.textContent = "★";
-      }
-      updateBookmarkChip();
+  if (wasBookmarked) {
+    state.bookmarks.delete(id);
+  } else {
+    state.bookmarks.add(id);
+  }
+  btn.setAttribute("aria-pressed", wasBookmarked ? "false" : "true");
+  btn.setAttribute("aria-label", wasBookmarked ? "Save this opportunity" : "Remove from saved");
+  btn.textContent = wasBookmarked ? "☆" : "★";
+  updateBookmarkChip();
 
-      // Guests keep session-only bookmarks (matches prior behaviour).
-      // Logged-in students get theirs persisted to Supabase.
-      if (!currentUserId) return;
-      try {
-        if (wasBookmarked) {
-          await window.SCA.removeBookmark(currentUserId, id);
-        } else {
-          const opportunity = state.all.find((o) => String(o.id || "") === id) || {};
-          await window.SCA.addBookmark(currentUserId, { id, ...opportunity });
-        }
-      } catch (err) {
-        console.warn("[SCA] Couldn't sync saved opportunity:", err.message);
-      }
-    });
-  });
+  // Guests keep session-only bookmarks (matches prior behaviour).
+  // Logged-in students get theirs persisted to Supabase.
+  if (!currentUserId) return;
+  try {
+    if (wasBookmarked) {
+      await window.SCA.removeBookmark(currentUserId, id);
+    } else {
+      const opportunity = state.all.find((o) => String(o.id || "") === id) || {};
+      await window.SCA.addBookmark(currentUserId, { id, ...opportunity });
+    }
+  } catch (err) {
+    console.warn("[SCA] Couldn't sync saved opportunity:", err.message);
+  }
 }
 
 function updateBookmarkChip() {
@@ -1208,6 +1265,34 @@ function wireEvents() {
   const reset = $("#filter-reset");
   if (reset) reset.addEventListener("click", resetFilters);
 
+  const sortSel = $("#opp-sort");
+  if (sortSel) sortSel.addEventListener("change", (e) => { state.sort = e.target.value; applyFilters(); });
+
+  $$(".view-btn").forEach((btn) => {
+    btn.setAttribute("aria-pressed", btn.dataset.view === state.view ? "true" : "false");
+    btn.addEventListener("click", () => {
+      state.view = btn.dataset.view;
+      try { localStorage.setItem("sca-opp-view", state.view); } catch (_) { /* ignore */ }
+      $$(".view-btn").forEach((b) => b.setAttribute("aria-pressed", b === btn ? "true" : "false"));
+      if (grid) grid.classList.toggle("is-list", state.view === "list");
+    });
+  });
+
+  const more = $("#opp-load-more");
+  if (more) more.addEventListener("click", showMore);
+
+  const filtersToggle = $("#filters-toggle");
+  if (filtersToggle) {
+    filtersToggle.addEventListener("click", () => {
+      const panel = $("#filters-panel");
+      const open = !panel.classList.contains("is-open");
+      panel.classList.toggle("is-open", open);
+      filtersToggle.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+  }
+
+  wireGrid();
+
   const emptyReset = $("#empty-reset");
   if (emptyReset) emptyReset.addEventListener("click", resetFilters);
 
@@ -1262,12 +1347,12 @@ function resetFilters() {
   state.country = "";
   state.year = "";
   state.remoteOnly = false;
-  state.openOnly = false;
+  state.openOnly = true;
   $("#filter-search").value = "";
   $("#filter-location").value = "";
   $("#filter-year").value = "";
   $("#filter-remote").checked = false;
-  $("#filter-open").checked = false;
+  $("#filter-open").checked = true;
   const pillWrap = $("#country-pill-wrap");
   if (pillWrap) pillWrap.hidden = true;
   applyFilters();

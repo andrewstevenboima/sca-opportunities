@@ -205,12 +205,15 @@
         <button class="tab" role="tab" data-category="Competitions" aria-selected="false">Competitions</button>
       </div>
 
-      <!-- Filter bar -->
-      <div class="filters" role="region" aria-label="Filters">
-        <div class="filter">
+      <!-- Filter bar. On phones, everything but the search folds behind "Filters". -->
+      <div class="filters" id="filters-panel" role="region" aria-label="Filters">
+        <div class="filter filter-search">
           <label for="filter-search">Search</label>
           <input id="filter-search" type="search" placeholder="Try: kenya internship, remote scholarship…" />
         </div>
+        <button type="button" class="filters-toggle" id="filters-toggle" aria-expanded="false" aria-controls="filters-panel">
+          Filters <span class="filters-count" id="filters-active-count" hidden></span>
+        </button>
         <div class="filter">
           <label for="filter-location">Country</label>
           <select id="filter-location">
@@ -235,8 +238,8 @@
             <span>Remote only</span>
           </label>
           <label class="toggle">
-            <input type="checkbox" id="filter-open" />
-            <span>Deadline open</span>
+            <input type="checkbox" id="filter-open" checked />
+            <span>Hide closed</span>
           </label>
         </div>
         <button class="btn btn-ghost btn-reset" id="filter-reset">Reset</button>
@@ -248,11 +251,35 @@
         <span id="bookmark-chip" class="bookmark-chip" hidden>
           ★ <span id="bookmark-count">0</span> saved
         </span>
+        <div class="results-tools">
+          <label class="sort-label" for="opp-sort">Sort</label>
+          <select id="opp-sort" class="sort-select">
+            <option value="newest">Newest first</option>
+            <option value="closing">Closing soonest</option>
+            <option value="az">A to Z</option>
+          </select>
+          <div class="view-toggle" role="group" aria-label="Layout">
+            <button type="button" class="view-btn" data-view="cards" aria-pressed="true" title="Cards">
+              <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M1 1h6v6H1zM9 1h6v6H9zM1 9h6v6H1zM9 9h6v6H9z"/></svg>
+              <span class="sr-only">Cards</span>
+            </button>
+            <button type="button" class="view-btn" data-view="list" aria-pressed="false" title="List">
+              <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M1 2h14v2H1zM1 7h14v2H1zM1 12h14v2H1z"/></svg>
+              <span class="sr-only">List</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Cards grid -->
       <div class="opp-grid" id="opp-grid" aria-live="polite" aria-busy="true">
         <!-- JS injects opportunity cards here -->
+      </div>
+
+      <!-- A page at a time -->
+      <div class="opp-more" id="opp-more" hidden>
+        <p class="opp-showing" id="opp-showing"></p>
+        <button type="button" class="btn btn-ghost opp-load-more" id="opp-load-more">Show more</button>
       </div>
 
       <!-- Empty state -->

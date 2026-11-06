@@ -2962,8 +2962,21 @@ em { font-style: italic; color: var(--gold); }
 .opp-more { display: flex; flex-direction: column; align-items: center; gap: 10px; margin: 28px 0 8px; }
 .opp-more[hidden] { display: none; }
 .opp-showing { margin: 0; font-size: 0.85rem; color: var(--ink-mute); }
-.opp-load-more { min-width: 200px; }
-.opp-load-more[hidden] { display: none; }
+.opp-pager { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px; }
+.opp-pager[hidden] { display: none; }
+.pager-pages { display: flex; align-items: center; gap: 4px; }
+.pager-btn {
+  font: inherit; font-size: 0.9rem; min-width: 38px; height: 38px; padding: 0 12px;
+  border: 1px solid var(--line-strong); border-radius: 8px; background: var(--white);
+  color: var(--ink); cursor: pointer;
+}
+.pager-btn:hover:not(:disabled), .pager-btn:focus-visible { border-color: var(--navy); color: var(--navy); }
+.pager-btn:disabled { opacity: 0.4; cursor: default; }
+.pager-num.is-current { background: var(--navy); border-color: var(--navy); color: var(--white); font-weight: 600; }
+.pager-gap { padding: 0 2px; color: var(--ink-mute); }
+@media (max-width: 480px) {
+  .pager-btn { min-width: 34px; height: 36px; padding: 0 9px; font-size: 0.85rem; }
+}
 
 /* The "Filters" button only matters on phones */
 .filters-toggle { display: none; }

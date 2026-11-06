@@ -55,7 +55,7 @@ const state = {
   openOnly: true,       // closed opportunities are hidden unless asked for
   sort: "newest",       // newest | closing | az
   view: "list",         // list | cards (remembered per browser)
-  shown: 0,             // how many of `filtered` are on the page
+  page: 0,              // which page of `filtered` is showing (0-based)
   bookmarks: new Set(), // in-memory bookmarks for the session
 };
 
@@ -971,7 +971,7 @@ function applyFilters() {
   state.filtered = base.filter((o) => state.category === "All" || o.category === state.category);
 
   sortFiltered();
-  state.shown = 0;
+  state.page = 0;
   renderGrid();
   updateTabCounts();
   updateFilterBadge();
@@ -1033,45 +1033,73 @@ function renderGrid() {
     grid.innerHTML = "";
     grid.hidden = true;
     empty.hidden = false;
-    updateLoadMore();
+    updatePager();
     return;
   }
 
   grid.hidden = false;
   empty.hidden = true;
-  state.shown = Math.min(Math.max(state.shown, PAGE_SIZE), total);
-  grid.innerHTML = state.filtered.slice(0, state.shown).map((o, i) => cardHTML(o, i)).join("");
-  updateLoadMore();
+  const pages = Math.ceil(total / PAGE_SIZE);
+  state.page = Math.min(Math.max(state.page, 0), pages - 1);
+  const from = state.page * PAGE_SIZE;
+  grid.innerHTML = state.filtered.slice(from, from + PAGE_SIZE).map((o, i) => cardHTML(o, i)).join("");
+  updatePager();
 }
 
-// Append the next page without re-rendering (and re-animating) the rest.
-function showMore() {
-  const from = state.shown;
-  state.shown = Math.min(from + PAGE_SIZE, state.filtered.length);
-  grid.insertAdjacentHTML(
-    "beforeend",
-    state.filtered.slice(from, state.shown).map((o, i) => cardHTML(o, i)).join("")
-  );
-  updateLoadMore();
-  // Move keyboard focus to the first new card's title link for screen readers.
-  const firstNew = grid.querySelectorAll(".oc")[from];
-  const focusable = firstNew && firstNew.querySelector(".oc-title");
-  if (focusable) focusable.focus({ preventScroll: true });
+// Go to a page: 10 opportunities at a time (1-10, 11-20, ...), then back
+// to the top of the results so the first one on the new page is in view.
+function goToPage(page) {
+  const pages = Math.ceil(state.filtered.length / PAGE_SIZE);
+  const next = Math.min(Math.max(page, 0), pages - 1);
+  if (next === state.page) return;
+  state.page = next;
+  renderGrid();
+  const top = document.querySelector(".results-header") || grid;
+  top.scrollIntoView({ behavior: "smooth", block: "start" });
+  const first = grid.querySelector(".oc .oc-title");
+  if (first) first.focus({ preventScroll: true });
 }
 
-function updateLoadMore() {
+// Page numbers to show: the first, the last, and the ones around the
+// current page, with gaps ("…") between them.
+function pageList(current, pages) {
+  const keep = new Set([0, pages - 1, current - 1, current, current + 1]);
+  const list = [];
+  for (let i = 0; i < pages; i++) {
+    if (keep.has(i)) list.push(i);
+    else if (list[list.length - 1] !== "gap") list.push("gap");
+  }
+  return list;
+}
+
+function updatePager() {
   const wrap = document.getElementById("opp-more");
   if (!wrap) return;
   const total = state.filtered.length;
+  const pages = Math.ceil(total / PAGE_SIZE);
   wrap.hidden = total === 0;
+  if (!total) return;
+  const from = state.page * PAGE_SIZE;
+  const to = Math.min(from + PAGE_SIZE, total);
   const showing = document.getElementById("opp-showing");
-  if (showing) showing.textContent = `Showing ${state.shown} of ${total}`;
-  const btn = document.getElementById("opp-load-more");
-  if (btn) {
-    const left = total - state.shown;
-    btn.hidden = left <= 0;
-    btn.textContent = `Show ${Math.min(left, PAGE_SIZE)} more`;
-  }
+  if (showing) showing.textContent = `Showing ${from + 1}–${to} of ${total}`;
+  const nav = document.getElementById("opp-pager");
+  if (!nav) return;
+  nav.hidden = pages <= 1;
+  if (pages <= 1) { nav.innerHTML = ""; return; }
+  const atStart = state.page === 0;
+  const atEnd = state.page === pages - 1;
+  nav.innerHTML =
+    `<button type="button" class="pager-btn pager-step" data-page="${state.page - 1}" ${atStart ? "disabled" : ""}>‹ Previous</button>` +
+    `<span class="pager-pages">` +
+    pageList(state.page, pages).map((p) =>
+      p === "gap"
+        ? `<span class="pager-gap" aria-hidden="true">…</span>`
+        : `<button type="button" class="pager-btn pager-num${p === state.page ? " is-current" : ""}" data-page="${p}"` +
+          `${p === state.page ? ' aria-current="page"' : ""} aria-label="Page ${p + 1}">${p + 1}</button>`
+    ).join("") +
+    `</span>` +
+    `<button type="button" class="pager-btn pager-step" data-page="${state.page + 1}" ${atEnd ? "disabled" : ""}>Next ›</button>`;
 }
 
 // One listener for every card, present and future: expand, save, bookmark.
@@ -1297,8 +1325,11 @@ function wireEvents() {
     });
   });
 
-  const more = $("#opp-load-more");
-  if (more) more.addEventListener("click", showMore);
+  const pager = $("#opp-pager");
+  if (pager) pager.addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-page]");
+    if (btn && !btn.disabled) goToPage(Number(btn.dataset.page));
+  });
 
   const filtersToggle = $("#filters-toggle");
   if (filtersToggle) {

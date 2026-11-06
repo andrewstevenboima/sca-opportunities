@@ -210,7 +210,7 @@ async function loadHomepagePreview() {
         <span class="home-preview-cat">${escapeHTML(o.category || "Opportunity")}</span>
         <h3>${escapeHTML(o.title || "Untitled")}</h3>
         ${o.organization ? `<p>${escapeHTML(o.organization)}</p>` : ""}
-        <a href="${safeHref(o.apply_link, "opportunities.html")}" target="_blank" rel="noopener" class="opp-apply">Apply →</a>
+        <a href="${safeHref(o.apply_link, "opportunities.html")}" target="_blank" rel="noopener" class="opp-apply">View details ↗</a>
       </article>
     `
       )
@@ -1102,7 +1102,7 @@ function updatePager() {
     `<button type="button" class="pager-btn pager-step" data-page="${state.page + 1}" ${atEnd ? "disabled" : ""}>Next ›</button>`;
 }
 
-// One listener for every card, present and future: expand, save, bookmark.
+// One listener for every card, present and future: save.
 function wireGrid() {
   if (!grid || grid.dataset.wired) return;
   grid.dataset.wired = "1";
@@ -1112,13 +1112,6 @@ function wireGrid() {
       e.preventDefault();
       await toggleBookmark(bookmark);
       return;
-    }
-    const toggle = e.target.closest(".oc-toggle");
-    if (toggle) {
-      const card = toggle.closest(".oc");
-      const open = card.classList.toggle("is-open");
-      toggle.setAttribute("aria-expanded", open ? "true" : "false");
-      toggle.querySelector("span").textContent = open ? "Less" : "Details";
     }
   });
 }
@@ -1140,16 +1133,14 @@ function wireScrollIndicator() {
 function cardHTML(o, i) {
   const id = escapeAttr(o.id || `${o.title}-${i}`);
   const bookmarked = state.bookmarks.has(id);
-  const tags = (o.tags || "")
-    .split(",")
-    .map((t) => t.trim())
-    .filter(Boolean)
-    .slice(0, 5);
   const deadline = deadlineInfo(o.deadline);
   const mode = detectMode(o);
   const where = [o.organization, o.location].filter(Boolean).map(escapeHTML).join(" · ");
-  const detailsId = `oc-more-${id.replace(/[^a-zA-Z0-9_-]/g, "")}-${i}`;
+  const href = safeHref(o.apply_link, "");
+  const source = sourceName(o.apply_link);
 
+  // A short summary here; the full details, requirements and the
+  // application itself are on the organisation's own website.
   return `
     <article class="oc" data-card-id="${id}">
       <div class="oc-top">
@@ -1158,7 +1149,9 @@ function cardHTML(o, i) {
         <button class="oc-save" type="button" aria-pressed="${bookmarked}" aria-label="${bookmarked ? "Remove from saved" : "Save this opportunity"}" data-id="${id}">${bookmarked ? "★" : "☆"}</button>
       </div>
 
-      <h3 class="oc-heading"><a class="oc-title" href="${safeHref(o.apply_link, "#")}" target="_blank" rel="noopener">${escapeHTML(o.title || "Untitled")}</a></h3>
+      <h3 class="oc-heading">${href
+        ? `<a class="oc-title" href="${href}" target="_blank" rel="noopener">${escapeHTML(o.title || "Untitled")}</a>`
+        : `<span class="oc-title">${escapeHTML(o.title || "Untitled")}</span>`}</h3>
       ${where ? `<p class="oc-where">${where}</p>` : ""}
 
       <div class="oc-facts">
@@ -1168,18 +1161,25 @@ function cardHTML(o, i) {
 
       ${o.description ? `<p class="oc-desc">${escapeHTML(o.description)}</p>` : ""}
 
-      <div class="oc-more" id="${detailsId}">
-        ${o.description ? `<p>${escapeHTML(o.description)}</p>` : ""}
-        ${o.eligibility_nationality ? `<p><strong>Who can apply:</strong> ${escapeHTML(o.eligibility_nationality)}</p>` : ""}
-        ${tags.length ? `<div class="oc-tags">${tags.map((t) => `<span>${escapeHTML(t)}</span>`).join("")}</div>` : ""}
-      </div>
-
+      ${href ? `
       <div class="oc-actions">
-        <button class="oc-toggle" type="button" aria-expanded="false" aria-controls="${detailsId}"><span>Details</span></button>
-        <a href="${safeHref(o.apply_link, "#")}" target="_blank" rel="noopener" class="oc-apply">Apply</a>
-      </div>
+        ${source ? `<span class="oc-source">${escapeHTML(source)}</span>` : ""}
+        <a href="${href}" target="_blank" rel="noopener" class="oc-view"
+           aria-label="View details of ${escapeAttr(o.title || "this opportunity")} on ${escapeAttr(source || "the organisation's website")} (opens in a new tab)">View details <span aria-hidden="true">↗</span></a>
+      </div>` : ""}
     </article>
   `;
+}
+
+/** "unicef.org" from an apply link: where the details are. */
+function sourceName(url) {
+  try {
+    const u = new URL(String(url || "").trim());
+    if (!/^https?:$/.test(u.protocol)) return "";
+    return u.hostname.replace(/^www\./, "");
+  } catch (_) {
+    return "";
+  }
 }
 
 /** Deadline as a short, readable label with an urgency class. */

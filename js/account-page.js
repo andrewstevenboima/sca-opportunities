@@ -217,7 +217,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           <h3>${escapeHTML(o.title || "Untitled")}</h3>
           ${o.organization ? `<p>${escapeHTML(o.organization)}${o.location ? ` · ${escapeHTML(o.location)}` : ""}</p>` : ""}
           <div class="saved-card-actions">
-            <a href="${safeHref(o.apply_link, "opportunities.html")}" target="_blank" rel="noopener" class="opp-apply">Apply →</a>
+            <a href="${safeHref(o.apply_link, "opportunities.html")}" target="_blank" rel="noopener" class="opp-apply">View details ↗</a>
           </div>
         </article>
       `
@@ -312,7 +312,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         <h3>${escapeHTML(b.opportunity_title || "Saved opportunity")}</h3>
         ${b.opportunity_org ? `<p>${escapeHTML(b.opportunity_org)}</p>` : ""}
         <div class="saved-card-actions">
-          <a href="${safeHref(b.opportunity_apply_link, "opportunities.html")}" target="_blank" rel="noopener" class="opp-apply">Apply →</a>
+          <a href="${safeHref(b.opportunity_apply_link, "opportunities.html")}" target="_blank" rel="noopener" class="opp-apply">View details ↗</a>
           <button class="saved-remove" data-id="${escapeAttr(b.opportunity_id)}">Remove</button>
         </div>
       </article>

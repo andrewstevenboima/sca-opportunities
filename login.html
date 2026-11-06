@@ -113,7 +113,7 @@
           </div>
           <div class="auth-field">
             <label for="login-password">Password</label>
-            <input type="password" id="login-password" required autocomplete="current-password" minlength="6" />
+            <input type="password" id="login-password" required autocomplete="current-password" />
           </div>
           <button type="submit" class="btn btn-primary auth-submit">Log In</button>
           <button type="button" class="auth-hint" id="forgot-password" style="background:none;border:none;cursor:pointer;text-decoration:underline;">
@@ -133,7 +133,8 @@
           </div>
           <div class="auth-field">
             <label for="signup-password">Password</label>
-            <input type="password" id="signup-password" required autocomplete="new-password" minlength="6" />
+            <input type="password" id="signup-password" required autocomplete="new-password" minlength="10" aria-describedby="signup-password-hint" />
+            <small class="auth-hint" id="signup-password-hint">At least 10 characters. A short phrase is easy to remember.</small>
           </div>
           <div class="auth-row">
             <div class="auth-field">
@@ -166,6 +167,35 @@
             <input type="text" id="signup-university" autocomplete="organization" />
           </div>
           <button type="submit" class="btn btn-primary auth-submit">Create Account</button>
+          <p class="auth-hint">One account for SCA Opportunities and the Student Companion AI chat.</p>
+        </form>
+
+        <!-- ===== CONFIRM EMAIL (6-digit code) ===== -->
+        <form class="auth-form" id="form-code" novalidate>
+          <p class="auth-step-lead" id="code-lead">Enter the 6-digit code we emailed you.</p>
+          <div class="auth-field">
+            <label for="code-input">Code</label>
+            <input type="text" id="code-input" required inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" />
+          </div>
+          <button type="submit" class="btn btn-primary auth-submit">Confirm and log in</button>
+          <button type="button" class="auth-hint auth-link" id="code-resend">Send a new code</button>
+          <p class="auth-hint">Can't find it? Check your Spam or Junk folder.</p>
+        </form>
+
+        <!-- ===== NEW PASSWORD (6-digit code) ===== -->
+        <form class="auth-form" id="form-reset">
+          <p class="auth-step-lead" id="reset-lead">Enter the code we emailed you and choose a new password.</p>
+          <div class="auth-field">
+            <label for="reset-code">Code</label>
+            <input type="text" id="reset-code" required inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" />
+          </div>
+          <div class="auth-field">
+            <label for="reset-password">New password</label>
+            <input type="password" id="reset-password" required autocomplete="new-password" minlength="10" />
+            <small class="auth-hint">At least 10 characters.</small>
+          </div>
+          <button type="submit" class="btn btn-primary auth-submit">Save and log in</button>
+          <button type="button" class="auth-hint auth-link" id="reset-back">Back to log in</button>
         </form>
 
         <p class="auth-scope-note">

@@ -299,3 +299,8 @@
     font-size: 16px; /* prevents iOS zoom-on-focus */
   }
 }
+
+/* Email-code steps (Cognito sign-in) */
+.auth-step-lead { margin: 0 0 1rem; color: var(--ink-soft); line-height: 1.5; }
+.auth-link { background: none; border: none; cursor: pointer; text-decoration: underline; padding: 0; font: inherit; }
+#code-input, #reset-code { letter-spacing: 0.3em; font-variant-numeric: tabular-nums; }

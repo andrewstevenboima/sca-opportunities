@@ -260,11 +260,11 @@
             <option value="az">A to Z</option>
           </select>
           <div class="view-toggle" role="group" aria-label="Layout">
-            <button type="button" class="view-btn" data-view="cards" aria-pressed="true" title="Cards">
+            <button type="button" class="view-btn" data-view="cards" aria-pressed="false" title="Cards">
               <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M1 1h6v6H1zM9 1h6v6H9zM1 9h6v6H1zM9 9h6v6H9z"/></svg>
               <span class="sr-only">Cards</span>
             </button>
-            <button type="button" class="view-btn" data-view="list" aria-pressed="false" title="List">
+            <button type="button" class="view-btn" data-view="list" aria-pressed="true" title="List">
               <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path fill="currentColor" d="M1 2h14v2H1zM1 7h14v2H1zM1 12h14v2H1z"/></svg>
               <span class="sr-only">List</span>
             </button>
@@ -273,7 +273,7 @@
       </div>
 
       <!-- Cards grid -->
-      <div class="opp-grid" id="opp-grid" aria-live="polite" aria-busy="true">
+      <div class="opp-grid is-list" id="opp-grid" aria-live="polite" aria-busy="true">
         <!-- JS injects opportunity cards here -->
       </div>
 

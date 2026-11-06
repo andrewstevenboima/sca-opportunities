@@ -28,6 +28,19 @@ document.addEventListener("DOMContentLoaded", () => {
     successBox.classList.remove("is-visible");
   }
 
+  const formCode = document.getElementById("form-code");
+  const formReset = document.getElementById("form-reset");
+  const forms = [formLogin, formSignup, formCode, formReset].filter(Boolean);
+  const cognito = () => Boolean(window.SCA && window.SCA.usesCognito);
+
+  // Email and password kept in memory between steps (sign up -> code ->
+  // logged in), never stored.
+  let pending = { email: "", password: "" };
+
+  function showForm(form) {
+    forms.forEach((f) => f.classList.toggle("is-active", f === form));
+  }
+
   function switchTab(which) {
     clearMessages();
     const isLogin = which === "login";
@@ -35,8 +48,34 @@ document.addEventListener("DOMContentLoaded", () => {
     tabSignup.classList.toggle("is-active", !isLogin);
     tabLogin.setAttribute("aria-selected", String(isLogin));
     tabSignup.setAttribute("aria-selected", String(!isLogin));
-    formLogin.classList.toggle("is-active", isLogin);
-    formSignup.classList.toggle("is-active", !isLogin);
+    showForm(isLogin ? formLogin : formSignup);
+  }
+
+  function showCodeStep(email, note) {
+    email = email.trim().toLowerCase();
+    pending.email = email;
+    document.getElementById("code-lead").textContent =
+      `${note || "We've emailed a 6-digit code to"} ${email}. Enter it to confirm your email.`;
+    document.getElementById("code-input").value = "";
+    showForm(formCode);
+    document.getElementById("code-input").focus();
+  }
+
+  function showResetStep(email) {
+    email = email.trim().toLowerCase();
+    pending.email = email;
+    document.getElementById("reset-lead").textContent =
+      `If ${email} has an account, we've emailed it a 6-digit code. Enter it and choose a new password.`;
+    document.getElementById("reset-code").value = "";
+    document.getElementById("reset-password").value = "";
+    showForm(formReset);
+    document.getElementById("reset-code").focus();
+  }
+
+  async function finishLogin() {
+    await window.SCA.signIn({ email: pending.email, password: pending.password });
+    pending = { email: "", password: "" };
+    window.location.href = "account.html";
   }
 
   tabLogin.addEventListener("click", () => switchTab("login"));
@@ -80,10 +119,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const btn = formLogin.querySelector(".auth-submit");
     btn.disabled = true;
     try {
-      await window.SCA.signIn({ email, password });
-      window.location.href = "account.html";
+      pending = { email, password };
+      await finishLogin();
     } catch (err) {
-      showError(err.message || "Couldn't log in. Check your email and password.");
+      if (cognito() && err.code === "UserNotConfirmedException") {
+        // Signed up but never entered the code: send a fresh one.
+        try { await window.SCA.resendCode(email); } catch (_) { /* the step still works with the old code */ }
+        showCodeStep(email, "Please confirm your email first. We've sent a new 6-digit code to");
+      } else if (cognito() && err.code === "PasswordResetRequiredException") {
+        try { await window.SCA.resetPassword(email); } catch (_) { /* ignore */ }
+        showResetStep(email);
+        showSuccess("Please choose a new password to continue.");
+      } else {
+        showError(err.message || "Couldn't log in. Check your email and password.");
+      }
     } finally {
       btn.disabled = false;
     }
@@ -102,7 +151,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     try {
       await window.SCA.resetPassword(email);
-      showSuccess("Password reset link sent — check your email.");
+      if (cognito()) showResetStep(email);
+      else showSuccess("Password reset link sent — check your email.");
     } catch (err) {
       showError(err.message || "Couldn't send reset email.");
     }
@@ -138,6 +188,10 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       if (data.session) {
         window.location.href = "account.html";
+      } else if (cognito()) {
+        pending = { email, password };
+        formSignup.reset();
+        showCodeStep(email);
       } else {
         formSignup.reset();
         switchTab("login");
@@ -149,4 +203,73 @@ document.addEventListener("DOMContentLoaded", () => {
       btn.disabled = false;
     }
   });
+  // ---- Confirm email with the 6-digit code (Cognito) ----
+  if (formCode) {
+    formCode.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      clearMessages();
+      const code = document.getElementById("code-input").value.trim();
+      if (!/^[0-9]{6}$/.test(code)) {
+        showError("Enter the 6-digit code from the email.");
+        return;
+      }
+      const btn = formCode.querySelector(".auth-submit");
+      btn.disabled = true;
+      try {
+        await window.SCA.confirmSignUp(pending.email, code);
+        if (pending.password) {
+          await finishLogin();
+        } else {
+          switchTab("login");
+          document.getElementById("login-email").value = pending.email;
+          showSuccess("Email confirmed. Log in with your password.");
+        }
+      } catch (err) {
+        showError(err.message || "Couldn't confirm the code.");
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    document.getElementById("code-resend").addEventListener("click", async () => {
+      clearMessages();
+      try {
+        await window.SCA.resendCode(pending.email);
+        showSuccess(`A new code is on its way to ${pending.email}.`);
+      } catch (err) {
+        showError(err.message || "Couldn't send a new code.");
+      }
+    });
+  }
+
+  // ---- New password with the 6-digit code (Cognito) ----
+  if (formReset) {
+    formReset.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      clearMessages();
+      const code = document.getElementById("reset-code").value.trim();
+      const password = document.getElementById("reset-password").value;
+      if (!/^[0-9]{6}$/.test(code)) {
+        showError("Enter the 6-digit code from the email.");
+        return;
+      }
+      if (password.length < 10) {
+        showError("Use a password of at least 10 characters.");
+        return;
+      }
+      const btn = formReset.querySelector(".auth-submit");
+      btn.disabled = true;
+      try {
+        await window.SCA.confirmResetPassword(pending.email, code, password);
+        pending.password = password;
+        await finishLogin();
+      } catch (err) {
+        showError(err.message || "Couldn't save the new password.");
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    document.getElementById("reset-back").addEventListener("click", () => switchTab("login"));
+  }
 });

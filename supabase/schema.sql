@@ -429,6 +429,12 @@ returns trigger
 language plpgsql
 as $$
 begin
+  -- Only students' own edits are restricted. Moving an account to a
+  -- new id (link_account() in cognito.sql) runs as the database owner and
+  -- cascades to user_id/sender_id/recipient_id, which must go through.
+  if current_user not in ('anon', 'authenticated') then
+    return new;
+  end if;
   if new.user_id <> old.user_id or new.created_at <> old.created_at then
     raise exception 'Only title/body may be updated on discussion_posts.';
   end if;
@@ -479,6 +485,12 @@ returns trigger
 language plpgsql
 as $$
 begin
+  -- Only students' own edits are restricted. Moving an account to a
+  -- new id (link_account() in cognito.sql) runs as the database owner and
+  -- cascades to user_id/sender_id/recipient_id, which must go through.
+  if current_user not in ('anon', 'authenticated') then
+    return new;
+  end if;
   if new.user_id <> old.user_id or new.post_id <> old.post_id or new.created_at <> old.created_at then
     raise exception 'Only body may be updated on discussion_comments.';
   end if;
@@ -613,6 +625,12 @@ returns trigger
 language plpgsql
 as $$
 begin
+  -- Only students' own edits are restricted. Moving an account to a
+  -- new id (link_account() in cognito.sql) runs as the database owner and
+  -- cascades to user_id/sender_id/recipient_id, which must go through.
+  if current_user not in ('anon', 'authenticated') then
+    return new;
+  end if;
   if auth.uid() = new.sender_id then
     if new.sender_id <> old.sender_id
        or new.recipient_id <> old.recipient_id

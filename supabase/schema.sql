@@ -659,3 +659,6 @@ create trigger messages_protect_fields
 
 create index if not exists messages_sender_recipient_idx on public.messages (sender_id, recipient_id, created_at);
 create index if not exists messages_recipient_sender_idx on public.messages (recipient_id, sender_id, created_at);
+
+-- After this file, run security-hardening.sql (privileges and checks that
+-- close the gaps found in the 2026-11-10 review).

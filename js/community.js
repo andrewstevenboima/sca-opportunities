@@ -7,6 +7,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (!signedInBox) return; // not on community.html
 
   const postForm = document.getElementById("form-new-post");
+  // The composer opens when a student starts a discussion and folds back
+  // to one line after posting or cancelling, so the feed leads the page.
+  const openComposer = () => postForm.classList.add("is-open");
+  const closeComposer = () => postForm.classList.remove("is-open");
+  postForm.addEventListener("focusin", openComposer);
+  document.getElementById("composer-cancel")?.addEventListener("click", () => {
+    postForm.reset();
+    closeComposer();
+  });
   const postTitle = document.getElementById("post-title");
   const postBody = document.getElementById("post-body");
   const postBodyEmojiBtn = document.getElementById("post-body-emoji-btn");
@@ -39,6 +48,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   const user = session.user;
+  window.SCA.getPublicProfile(user.id).then((me) => {
+    const slot = document.getElementById("composer-avatar");
+    if (slot && me) slot.outerHTML = avatarHTML(me, "account-avatar--sm composer-avatar");
+  }).catch(() => {});
   signedInBox.hidden = false;
 
   const profileCache = new Map();
@@ -394,7 +407,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       })
       .join("");
 
-    container.innerHTML = `${pills}<button type="button" class="reaction-add-btn" aria-label="Add reaction">🙂+</button>`;
+    container.innerHTML = `${pills}<button type="button" class="reaction-add-btn" aria-label="Add reaction"><span aria-hidden="true">☺</span> React</button>`;
 
     container.querySelectorAll(".reaction-pill").forEach((btn) => {
       btn.addEventListener("click", () => toggleReaction(targetType, targetId, btn.dataset.emoji, container));
@@ -805,6 +818,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       postsEmpty.hidden = true;
       postsList.prepend(await renderPostCard(post));
       postForm.reset();
+      closeComposer();
     } catch (err) {
       postError.textContent = err.message || "Couldn't post that. Please try again.";
       postError.classList.add("is-visible");

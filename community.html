@@ -113,28 +113,35 @@
     <!-- ===== Signed-in view ===== -->
     <section class="container" id="community-signed-in" hidden style="padding: var(--s-4) var(--s-4) var(--s-9);">
 
-      <form id="form-new-post" class="new-post-card">
-        <h2 class="section-title">Start a discussion</h2>
-        <div class="auth-field">
-          <label for="post-title">Title</label>
-          <input type="text" id="post-title" maxlength="150" required placeholder="What's on your mind?" />
+      <form id="form-new-post" class="new-post-card composer">
+        <h2 class="sr-only">Start a discussion</h2>
+        <div class="composer-head">
+          <div class="account-avatar account-avatar--sm composer-avatar" id="composer-avatar" aria-hidden="true"><span>·</span></div>
+          <label class="sr-only" for="post-title">Title</label>
+          <input type="text" id="post-title" maxlength="150" required placeholder="Start a discussion: ask a question or share a tip" autocomplete="off" />
         </div>
-        <div class="auth-field">
-          <label for="post-body">Details</label>
-          <textarea id="post-body" rows="3" maxlength="5000" required placeholder="Share the details… type @ to mention a student"></textarea>
-        </div>
-        <div class="auth-error" id="new-post-error" role="alert"></div>
-        <div class="composer-toolbar">
-          <button type="button" class="format-bold-btn" id="post-body-bold-btn" aria-label="Bold">B</button>
-          <button type="button" class="format-italic-btn" id="post-body-italic-btn" aria-label="Italic">I</button>
-          <button type="button" class="format-underline-btn" id="post-body-underline-btn" aria-label="Underline">U</button>
-          <button type="button" class="link-picker-btn" id="post-body-link-btn" aria-label="Add link">🔗</button>
-          <button type="button" class="format-bullet-btn" id="post-body-bullet-btn" aria-label="Bulleted list">•</button>
-          <button type="button" class="format-numbered-btn" id="post-body-numbered-btn" aria-label="Numbered list">1.</button>
-          <button type="button" class="emoji-picker-btn" id="post-body-emoji-btn" aria-label="Add emoji">🙂</button>
-          <button type="submit" class="btn btn-primary" id="new-post-submit">Post to the Common Room</button>
+        <div class="composer-more">
+          <label class="sr-only" for="post-body">Details</label>
+          <textarea id="post-body" rows="4" maxlength="5000" required placeholder="Add the details… type @ to mention a student"></textarea>
+          <div class="auth-error" id="new-post-error" role="alert"></div>
+          <div class="composer-toolbar">
+            <button type="button" class="format-bold-btn" id="post-body-bold-btn" aria-label="Bold">B</button>
+            <button type="button" class="format-italic-btn" id="post-body-italic-btn" aria-label="Italic">I</button>
+            <button type="button" class="format-underline-btn" id="post-body-underline-btn" aria-label="Underline">U</button>
+            <button type="button" class="link-picker-btn" id="post-body-link-btn" aria-label="Add link">🔗</button>
+            <button type="button" class="format-bullet-btn" id="post-body-bullet-btn" aria-label="Bulleted list">•</button>
+            <button type="button" class="format-numbered-btn" id="post-body-numbered-btn" aria-label="Numbered list">1.</button>
+            <button type="button" class="emoji-picker-btn" id="post-body-emoji-btn" aria-label="Add emoji">🙂</button>
+            <span class="composer-spacer"></span>
+            <button type="button" class="composer-cancel" id="composer-cancel">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="new-post-submit">Post to the Common Room</button>
+          </div>
         </div>
       </form>
+
+      <div class="cr-feed-head">
+        <h2 class="cr-feed-title">Latest discussions</h2>
+      </div>
 
       <div class="posts-list" id="posts-list"></div>
       <p class="posts-empty" id="posts-empty" hidden>No discussions yet. Be the first to start one.</p>

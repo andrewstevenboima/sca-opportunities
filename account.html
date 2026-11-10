@@ -94,63 +94,44 @@
   </header>
 
   <main id="main-content" role="main">
-    <section class="page-header">
-      <div class="container">
-        <div class="account-header">
-          <div class="account-header-main">
-            <div class="account-avatar" id="account-avatar">
-              <img id="avatar-img" alt="" hidden />
-              <span id="avatar-initials">—</span>
-            </div>
-            <div>
-              <h1 class="page-title">My Account</h1>
-              <p class="page-lead" id="account-welcome">Loading your profile…</p>
-            </div>
-          </div>
-          <div class="account-header-actions">
-            <button class="btn btn-ghost" id="btn-edit-profile">Edit Profile</button>
-            <button class="btn btn-ghost" id="btn-logout">Log Out</button>
-          </div>
+    <section class="acct-head">
+      <div class="container acct-head-inner">
+        <div class="account-avatar acct-avatar" id="account-avatar">
+          <img id="avatar-img" alt="" hidden />
+          <span id="avatar-initials">—</span>
         </div>
-
-        <div class="companion-stats">
-          <a class="companion-stat" id="link-companions" href="#">
-            <strong id="stat-companions">0</strong>
-            <span>Companions</span>
-          </a>
-          <a class="companion-stat" id="link-companioning" href="#">
-            <strong id="stat-companioning">0</strong>
-            <span>Companioning</span>
-          </a>
+        <div class="acct-id">
+          <p class="acct-eyebrow">My account</p>
+          <h1 class="acct-name" id="account-name">Your profile</h1>
+          <p class="acct-summary" id="account-welcome">Loading your profile…</p>
+          <p class="acct-stats">
+            <a id="link-companions" href="#"><strong id="stat-companions">0</strong> <span id="stat-companions-label">companions</span></a>
+            <span aria-hidden="true">·</span>
+            <a id="link-companioning" href="#"><strong id="stat-companioning">0</strong> companioning</a>
+          </p>
         </div>
+        <div class="acct-actions">
+          <button class="btn acct-btn" id="btn-edit-profile">Edit profile</button>
+          <button class="acct-logout" id="btn-logout">Log out</button>
+        </div>
+      </div>
+    </section>
 
+    <div class="container acct-body" id="acct-body">
+      <aside class="acct-aside">
         <!-- ===== VIEW MODE: read-only summary ===== -->
-        <div class="account-profile" id="account-profile" hidden>
-          <div class="account-profile-item">
-            <span class="label">Region</span>
-            <span class="value" id="profile-region">—</span>
-          </div>
-          <div class="account-profile-item">
-            <span class="label">Country</span>
-            <span class="value" id="profile-country">—</span>
-          </div>
-          <div class="account-profile-item">
-            <span class="label">Year of study</span>
-            <span class="value" id="profile-year">—</span>
-          </div>
-          <div class="account-profile-item">
-            <span class="label">University</span>
-            <span class="value" id="profile-university">—</span>
-          </div>
-          <div class="account-profile-item">
-            <span class="label">Sex</span>
-            <span class="value" id="profile-sex">—</span>
-          </div>
-          <div class="account-profile-item">
-            <span class="label">Date of birth</span>
-            <span class="value" id="profile-dob">—</span>
-          </div>
-        </div>
+        <section class="acct-panel" id="account-profile" hidden aria-labelledby="details-title">
+          <h2 class="acct-panel-title" id="details-title">Your details</h2>
+          <dl class="acct-details">
+            <div><dt>University</dt><dd id="profile-university">—</dd></div>
+            <div><dt>Year of study</dt><dd id="profile-year">—</dd></div>
+            <div><dt>Country</dt><dd id="profile-country">—</dd></div>
+            <div><dt>Region</dt><dd id="profile-region">—</dd></div>
+            <div><dt>Sex</dt><dd id="profile-sex">—</dd></div>
+            <div><dt>Date of birth</dt><dd id="profile-dob">—</dd></div>
+          </dl>
+          <p class="acct-note">Your country and year of study decide which opportunities we recommend.</p>
+        </section>
 
         <!-- ===== EDIT MODE: hidden until "Edit Profile" is clicked ===== -->
         <section class="account-edit-section" id="edit-profile-section" hidden>
@@ -228,27 +209,33 @@
             </div>
           </form>
         </section>
+      </aside>
+
+      <div class="acct-main">
+        <section aria-labelledby="saved-title">
+          <div class="acct-section-head">
+            <h2 class="acct-section-title" id="saved-title">Saved opportunities</h2>
+            <a class="acct-more" href="opportunities.html">Browse all ↗</a>
+          </div>
+
+          <div class="acct-empty" id="saved-empty" hidden>
+            <p class="acct-empty-title">Nothing saved yet</p>
+            <p>Tap the bookmark on any opportunity and it will wait for you here, with its deadline.</p>
+            <a href="opportunities.html" class="btn acct-btn">Browse opportunities</a>
+          </div>
+
+          <div class="acct-list" id="saved-grid"></div>
+        </section>
+
+        <section id="recommended-section" aria-labelledby="reco-title" hidden>
+          <div class="acct-section-head">
+            <h2 class="acct-section-title" id="reco-title">Recommended for you</h2>
+          </div>
+          <p class="acct-section-sub" id="recommended-sub">Opportunities open to students in your country.</p>
+          <div class="acct-list" id="recommended-grid"></div>
+        </section>
       </div>
-    </section>
-
-    <section class="container" style="padding: var(--s-7) var(--s-4) var(--s-9);">
-      <h2 class="section-title">Saved opportunities</h2>
-      <p class="section-sub">Everything you've bookmarked, in one place.</p>
-
-      <div class="saved-empty" id="saved-empty" hidden>
-        <p>You haven't saved any opportunities yet.</p>
-        <a href="opportunities.html" class="btn btn-primary" style="margin-top: var(--s-4);">Browse Opportunities</a>
-      </div>
-
-      <div class="saved-grid" id="saved-grid"></div>
-    </section>
-
-    <section class="container" id="recommended-section" style="padding: 0 var(--s-4) var(--s-9);" hidden>
-      <h2 class="section-title">Recommended for you</h2>
-      <p class="section-sub" id="recommended-sub">Opportunities open to students in your country.</p>
-
-      <div class="saved-grid" id="recommended-grid"></div>
-    </section>
+    </div>
   </main>
 
   <!-- ========== FOOTER ========== -->

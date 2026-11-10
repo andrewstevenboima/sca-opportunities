@@ -125,7 +125,31 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
+  const acctBody = document.getElementById("acct-body");
+
+  /** "1993-08-28" -> "28 August 1993" */
+  function formatDob(iso) {
+    if (!iso) return "—";
+    const d = new Date(`${iso}T00:00:00`);
+    return isNaN(d.getTime()) ? iso : d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+  }
+
+  function fillDetails(p) {
+    const set = (id, v) => { document.getElementById(id).textContent = v || "—"; };
+    set("profile-region", p?.region);
+    set("profile-country", p?.country);
+    set("profile-year", p?.year_of_study);
+    set("profile-university", p?.university);
+    set("profile-sex", p?.sex);
+    document.getElementById("profile-dob").textContent = formatDob(p?.date_of_birth);
+    const nameEl = document.getElementById("account-name");
+    if (nameEl) nameEl.textContent = p?.full_name || user.email;
+    const summary = [p?.year_of_study, p?.university, p?.country].filter(Boolean).join(" · ");
+    welcome.textContent = summary || user.email;
+  }
+
   function showView() {
+    if (acctBody) acctBody.classList.remove("is-editing");
     editSection.hidden = true;
     profileBox.hidden = false;
     editError.classList.remove("is-visible");
@@ -134,6 +158,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function showEdit() {
     populateEditForm(currentProfile);
+    if (acctBody) acctBody.classList.add("is-editing");
     profileBox.hidden = true;
     editSection.hidden = false;
   }
@@ -148,18 +173,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     const profile = await window.SCA.getProfile(user.id);
     currentProfile = profile;
-    welcome.textContent = `Welcome back, ${profile?.full_name || user.email}.`;
-    document.getElementById("profile-region").textContent = profile?.region || "—";
-    document.getElementById("profile-country").textContent = profile?.country || "—";
-    document.getElementById("profile-year").textContent = profile?.year_of_study || "—";
-    document.getElementById("profile-university").textContent = profile?.university || "—";
-    document.getElementById("profile-sex").textContent = profile?.sex || "—";
-    document.getElementById("profile-dob").textContent = profile?.date_of_birth || "—";
+    fillDetails(profile);
     profileBox.hidden = false;
 
     setAvatar(profile?.avatar_url, profile?.full_name);
   } catch (err) {
-    welcome.textContent = `Welcome back, ${user.email}.`;
+    fillDetails({});
+    profileBox.hidden = false;
     setAvatar(null, user.email);
   }
 
@@ -174,6 +194,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     ]);
     document.getElementById("stat-companions").textContent = companions.length;
     document.getElementById("stat-companioning").textContent = companioning.length;
+    const label = document.getElementById("stat-companions-label");
+    if (label) label.textContent = companions.length === 1 ? "companion" : "companions";
   } catch (err) {
     // Non-fatal — leave the counts at their default of 0.
   }
@@ -211,17 +233,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       recommendedSub.textContent = `${matches.length} opportunit${matches.length === 1 ? "y" : "ies"} open to students in ${currentProfile.country}.`;
       recommendedGrid.innerHTML = matches
-        .map(
-          (o, i) => `
-        <article class="saved-card" data-opportunity-id="${escapeAttr(o.id || i)}">
-          <h3>${escapeHTML(o.title || "Untitled")}</h3>
-          ${o.organization ? `<p>${escapeHTML(o.organization)}${o.location ? ` · ${escapeHTML(o.location)}` : ""}</p>` : ""}
-          <div class="saved-card-actions">
-            <a href="${safeHref(o.apply_link, "opportunities.html")}" target="_blank" rel="noopener" class="opp-apply">View details ↗</a>
-          </div>
-        </article>
-      `
-        )
+        .map((o) => rowHTML({
+          title: o.title,
+          org: [o.organization, typeof shortLocation === "function" ? shortLocation(o.location) : o.location].filter(Boolean).join(" · "),
+          link: o.apply_link,
+          deadline: o.deadline,
+        }))
         .join("");
       recommendedSection.hidden = false;
     } catch (err) {
@@ -277,12 +294,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         currentProfile = { ...currentProfile, ...updates };
 
-        document.getElementById("profile-region").textContent = updates.region || "—";
-        document.getElementById("profile-country").textContent = updates.country || "—";
-        document.getElementById("profile-year").textContent = updates.year_of_study || "—";
-        document.getElementById("profile-university").textContent = updates.university || "—";
-        document.getElementById("profile-sex").textContent = updates.sex || "—";
-        document.getElementById("profile-dob").textContent = updates.date_of_birth || "—";
+        fillDetails(currentProfile);
         if (updates.avatar_url) setAvatar(updates.avatar_url, currentProfile?.full_name);
 
         // Success — close the edit form and return to the normal
@@ -306,18 +318,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
     grid.innerHTML = bookmarks
-      .map(
-        (b) => `
-      <article class="saved-card" data-opportunity-id="${escapeAttr(b.opportunity_id)}">
-        <h3>${escapeHTML(b.opportunity_title || "Saved opportunity")}</h3>
-        ${b.opportunity_org ? `<p>${escapeHTML(b.opportunity_org)}</p>` : ""}
-        <div class="saved-card-actions">
-          <a href="${safeHref(b.opportunity_apply_link, "opportunities.html")}" target="_blank" rel="noopener" class="opp-apply">View details ↗</a>
-          <button class="saved-remove" data-id="${escapeAttr(b.opportunity_id)}">Remove</button>
-        </div>
-      </article>
-    `
-      )
+      .map((b) => rowHTML({
+        title: b.opportunity_title || "Saved opportunity",
+        org: b.opportunity_org,
+        link: b.opportunity_apply_link,
+        removeId: b.opportunity_id,
+      }))
       .join("");
 
     grid.querySelectorAll(".saved-remove").forEach((btn) => {
@@ -325,8 +331,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         const id = btn.dataset.id;
         try {
           await window.SCA.removeBookmark(user.id, id);
-          btn.closest(".saved-card").remove();
-          if (!grid.querySelector(".saved-card")) savedEmpty.hidden = false;
+          btn.closest(".acct-row").remove();
+          if (!grid.querySelector(".acct-row")) savedEmpty.hidden = false;
         } catch (err) {
           alert(err.message || "Couldn't remove that saved opportunity.");
         }
@@ -334,6 +340,27 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   } catch (err) {
     grid.innerHTML = `<p>Couldn't load your saved opportunities. Please try refreshing.</p>`;
+  }
+
+  /** One opportunity as a ruled row, in the same style as the listing. */
+  function rowHTML({ title, org, link, deadline, removeId }) {
+    let date = "";
+    if (deadline && typeof dateBlock === "function") {
+      const d = dateBlock(deadline);
+      date = `<div class="oc-date ${d.cls}"><span class="sr-only">Deadline: </span><span class="oc-day">${d.day}</span><span class="oc-mon">${d.month}</span>${d.left ? `<span class="oc-left">${d.left}</span>` : ""}</div>`;
+    }
+    return `
+      <article class="acct-row${date ? " has-date" : ""}">
+        ${date}
+        <div class="acct-row-body">
+          <h3><a href="${safeHref(link, "opportunities.html")}" target="_blank" rel="noopener">${escapeHTML(title || "Untitled")}</a></h3>
+          ${org ? `<p>${escapeHTML(org)}</p>` : ""}
+        </div>
+        <div class="acct-row-actions">
+          <a href="${safeHref(link, "opportunities.html")}" target="_blank" rel="noopener" class="oc-view">View details <span aria-hidden="true">↗</span></a>
+          ${removeId != null ? `<button type="button" class="saved-remove" data-id="${escapeAttr(removeId)}">Remove</button>` : ""}
+        </div>
+      </article>`;
   }
 
   function escapeHTML(str) {

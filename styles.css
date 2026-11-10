@@ -3023,3 +3023,166 @@ em { font-style: italic; color: var(--gold); }
   border: 1px dashed currentColor; background: transparent; color: var(--navy);
 }
 .near-me:hover, .near-me:focus-visible { background: var(--gold-wash); }
+
+/* =============================================================
+   Opportunities v3: an editorial listing.
+   Each entry leads with its deadline, set like a calendar date, because
+   that is what a student acts on. Neutral type does the rest: no
+   coloured category labels, no pill chips, no emoji, full titles.
+   These rules come last and replace the v2 card styles above.
+   ============================================================= */
+.opp-grid { gap: 16px; }
+.opp-grid .oc {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  grid-template-areas: "date body" "date side";
+  column-gap: 20px; row-gap: 14px;
+  padding: 22px 22px 18px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: none;
+}
+.opp-grid .oc:hover { border-color: var(--ink); box-shadow: none; }
+
+/* Deadline, calendar style */
+.oc-date {
+  grid-area: date; align-self: start;
+  display: flex; flex-direction: column; align-items: flex-start;
+  padding-right: 18px; border-right: 1px solid var(--line);
+  min-height: 100%;
+}
+.oc-day {
+  font-family: var(--font-display); font-weight: 500;
+  font-size: 2.1rem; line-height: 1; color: var(--ink);
+  font-variant-numeric: lining-nums;
+}
+.oc-mon {
+  margin-top: 6px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--ink-mute); line-height: 1.3;
+}
+.oc-left { margin-top: 8px; font-size: 0.75rem; font-weight: 600; line-height: 1.3; color: var(--ink-soft); }
+.oc-date.is-soon .oc-day, .oc-date.is-soon .oc-left { color: var(--red); }
+.oc-date.is-closed .oc-day, .oc-date.is-closed .oc-left { color: var(--ink-mute); }
+.oc-date.is-closed .oc-day { text-decoration: line-through; text-decoration-thickness: 1px; }
+.oc-date.is-rolling .oc-day { font-size: 1.2rem; padding-top: 6px; }
+.oc-date.is-rolling .oc-mon { letter-spacing: 0.03em; text-transform: none; font-weight: 500; }
+
+.oc-body { grid-area: body; min-width: 0; }
+.opp-grid .oc-heading {
+  margin: 0; font-family: var(--font-display); font-weight: 500;
+  font-size: 1.18rem; line-height: 1.3; letter-spacing: -0.005em;
+}
+.opp-grid .oc-title {
+  display: inline; -webkit-line-clamp: unset; overflow: visible;
+  color: var(--ink); text-decoration: none;
+  background-image: linear-gradient(var(--gold-bright), var(--gold-bright));
+  background-size: 0 1px; background-repeat: no-repeat; background-position: 0 100%;
+  transition: background-size var(--dur) var(--ease);
+}
+.opp-grid .oc-title:hover, .opp-grid .oc-title:focus-visible { background-size: 100% 1px; text-decoration: none; }
+.opp-grid .oc-where {
+  margin: 6px 0 0; font-size: 0.9rem; font-weight: 500; color: var(--ink-soft);
+  white-space: normal; overflow: visible;
+}
+.oc-meta { margin: 3px 0 0; font-size: 0.82rem; color: var(--ink-mute); }
+.opp-grid .oc-desc {
+  margin: 10px 0 0; font-size: 0.9rem; line-height: 1.6; color: var(--ink-soft);
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+/* Save, then the way out to the organisation's own page */
+.oc-side {
+  grid-area: side; display: flex; align-items: center; gap: 14px; min-width: 0;
+  padding-top: 14px; border-top: 1px solid var(--line);
+}
+.opp-grid .oc-save {
+  order: 3; margin-left: auto; width: 36px; height: 36px; padding: 0;
+  display: grid; place-items: center; border-radius: 6px;
+  color: var(--ink-mute); background: none; border: 1px solid transparent; font-size: inherit;
+}
+.opp-grid .oc-save:hover { color: var(--ink); border-color: var(--line-strong); background: none; }
+.opp-grid .oc-save[aria-pressed="true"] { color: var(--gold); }
+.opp-grid .oc-view {
+  order: 1; margin-left: 0;
+  font-size: 0.86rem; font-weight: 600; color: var(--ink); background: none;
+  padding: 8px 14px; border: 1px solid var(--ink); border-radius: 6px;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.opp-grid .oc-view:hover, .opp-grid .oc-view:focus-visible { background: var(--ink); color: var(--white); }
+.opp-grid .oc-source { order: 2; display: block; font-size: 0.8rem; color: var(--ink-mute); }
+
+/* List view: one ruled row per opportunity */
+.opp-grid.is-list { gap: 0; border: 0; border-top: 1px solid var(--ink); border-radius: 0; overflow: visible; }
+.opp-grid.is-list .oc {
+  grid-template-columns: 76px minmax(0, 1fr) auto;
+  grid-template-areas: "date body side";
+  align-items: start; column-gap: 24px;
+  padding: 22px 4px; border: 0; border-bottom: 1px solid var(--line); border-radius: 0;
+}
+.opp-grid.is-list .oc:hover { background: var(--cream); border-color: var(--line); }
+.opp-grid.is-list .oc-heading { font-size: 1.12rem; }
+.opp-grid.is-list .oc-title { -webkit-line-clamp: unset; }
+.opp-grid.is-list .oc-desc { display: -webkit-box; -webkit-line-clamp: 1; margin-top: 8px; max-width: 70ch; }
+.opp-grid.is-list .oc-side {
+  flex-direction: column; align-items: flex-end; gap: 8px;
+  padding-top: 2px; border-top: 0;
+}
+.opp-grid.is-list .oc-save { order: 0; margin-left: 0; }
+.opp-grid.is-list .oc-source { max-width: 190px; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Results line */
+.results-count { font-family: var(--font-display); font-size: 1.15rem; font-weight: 500; color: var(--ink); }
+.near-me {
+  border: 0; border-radius: 0; padding: 0; background: none;
+  font-size: 0.88rem; font-weight: 600; color: var(--ink);
+  text-decoration: underline; text-decoration-color: var(--gold-bright);
+  text-decoration-thickness: 2px; text-underline-offset: 4px;
+}
+.near-me:hover, .near-me:focus-visible { background: none; color: var(--gold); }
+
+@media (max-width: 760px) {
+  .opp-grid .oc, .opp-grid.is-list .oc {
+    grid-template-columns: 56px minmax(0, 1fr);
+    grid-template-areas: "date body" "side side";
+    column-gap: 14px; row-gap: 12px; padding: 18px 2px;
+  }
+  .opp-grid .oc { padding: 18px 16px 14px; }
+  .oc-date { padding-right: 12px; }
+  .oc-day { font-size: 1.7rem; }
+  .oc-date.is-rolling .oc-day { font-size: 1rem; }
+  .opp-grid .oc-heading, .opp-grid.is-list .oc-heading { font-size: 1.05rem; }
+  .opp-grid.is-list .oc-desc { display: none; }
+  .opp-grid.is-list .oc-side {
+    flex-direction: row; align-items: center; gap: 12px; padding-top: 0; margin-left: 70px;
+  }
+  .opp-grid.is-list .oc-save { order: 3; margin-left: auto; }
+  .opp-grid.is-list .oc-source { text-align: left; }
+  .opp-grid .oc-source { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+
+/* Card view: the date runs across the top, so the title gets the width */
+.opp-grid:not(.is-list) .oc {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "date" "body" "side";
+  row-gap: 12px;
+}
+.opp-grid:not(.is-list) .oc-date {
+  flex-direction: row; align-items: baseline; flex-wrap: wrap; gap: 0 8px;
+  padding: 0 0 12px; border-right: 0; border-bottom: 1px solid var(--line); min-height: 0;
+}
+.opp-grid:not(.is-list) .oc-day { font-size: 1.5rem; }
+.opp-grid:not(.is-list) .oc-mon, .opp-grid:not(.is-list) .oc-left { margin-top: 0; }
+.opp-grid:not(.is-list) .oc-left { margin-left: auto; }
+.opp-grid:not(.is-list) .oc-left span { display: inline; }
+.opp-grid:not(.is-list) .oc-date.is-rolling .oc-day { font-size: 1.1rem; padding-top: 0; }
+.opp-grid:not(.is-list) .oc-source { display: none; }
+.opp-grid:not(.is-list) .oc-side { margin-top: auto; }
+.opp-grid:not(.is-list) .oc-body { display: flex; flex-direction: column; }
+
+/* "13 days" on one line, "left" under it */
+.oc-left span { display: block; }
+.oc-left { white-space: nowrap; }
+
+/* The results line already draws the rule above the list */
+.opp-grid.is-list { border-top: 0; }

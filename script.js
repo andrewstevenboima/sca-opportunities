@@ -1133,42 +1133,94 @@ function wireScrollIndicator() {
 function cardHTML(o, i) {
   const id = escapeAttr(o.id || `${o.title}-${i}`);
   const bookmarked = state.bookmarks.has(id);
-  const deadline = deadlineInfo(o.deadline);
+  const date = dateBlock(o.deadline);
   const mode = detectMode(o);
-  const where = [o.organization, o.location].filter(Boolean).map(escapeHTML).join(" · ");
+  const where = [o.organization, shortLocation(o.location)].filter(Boolean).map(escapeHTML).join(" · ");
+  const meta = [singular(o.category), mode, shortEligibility(o.eligibility_year)].filter(Boolean).map(escapeHTML).join(" · ");
+  const summary = cleanSummary(o.description);
   const href = safeHref(o.apply_link, "");
   const source = sourceName(o.apply_link);
+  const title = escapeHTML(o.title || "Untitled");
 
   // A short summary here; the full details, requirements and the
   // application itself are on the organisation's own website.
   return `
     <article class="oc" data-card-id="${id}">
-      <div class="oc-top">
-        <span class="oc-cat oc-cat-${escapeAttr(String(o.category || "other").toLowerCase())}">${escapeHTML(o.category || "Opportunity")}</span>
-        ${mode ? `<span class="oc-mode">${mode}</span>` : ""}
-        <button class="oc-save" type="button" aria-pressed="${bookmarked}" aria-label="${bookmarked ? "Remove from saved" : "Save this opportunity"}" data-id="${id}">${bookmarked ? "★" : "☆"}</button>
+      <div class="oc-date ${date.cls}"${date.title ? ` title="${escapeAttr(date.title)}"` : ""}>
+        <span class="sr-only">Deadline: </span>
+        <span class="oc-day">${date.day}</span>
+        <span class="oc-mon">${date.month}</span>
+        ${date.left ? `<span class="oc-left">${date.left}</span>` : ""}
       </div>
 
-      <h3 class="oc-heading">${href
-        ? `<a class="oc-title" href="${href}" target="_blank" rel="noopener">${escapeHTML(o.title || "Untitled")}</a>`
-        : `<span class="oc-title">${escapeHTML(o.title || "Untitled")}</span>`}</h3>
-      ${where ? `<p class="oc-where">${where}</p>` : ""}
-
-      <div class="oc-facts">
-        ${deadline ? `<span class="oc-deadline ${deadline.cls}"${deadline.title ? ` title="${escapeAttr(deadline.title)}"` : ""}>${deadline.label}</span>` : ""}
-        ${o.eligibility_year ? `<span class="oc-elig">${escapeHTML(o.eligibility_year)}</span>` : ""}
+      <div class="oc-body">
+        <h3 class="oc-heading">${href
+          ? `<a class="oc-title" href="${href}" target="_blank" rel="noopener">${title}</a>`
+          : `<span class="oc-title">${title}</span>`}</h3>
+        ${where ? `<p class="oc-where">${where}</p>` : ""}
+        ${meta ? `<p class="oc-meta">${meta}</p>` : ""}
+        ${summary ? `<p class="oc-desc">${escapeHTML(summary)}</p>` : ""}
       </div>
 
-      ${o.description ? `<p class="oc-desc">${escapeHTML(o.description)}</p>` : ""}
-
-      ${href ? `
-      <div class="oc-actions">
-        ${source ? `<span class="oc-source">${escapeHTML(source)}</span>` : ""}
+      <div class="oc-side">
+        <button class="oc-save" type="button" aria-pressed="${bookmarked}" aria-label="${bookmarked ? "Remove from saved" : "Save this opportunity"}" title="${bookmarked ? "Saved" : "Save"}" data-id="${id}">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 3.5h12a.5.5 0 0 1 .5.5v16.2a.3.3 0 0 1-.48.24L12 16l-6.02 4.44a.3.3 0 0 1-.48-.24V4a.5.5 0 0 1 .5-.5z" fill="${bookmarked ? "currentColor" : "none"}" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        </button>
+        ${href ? `
         <a href="${href}" target="_blank" rel="noopener" class="oc-view"
            aria-label="View details of ${escapeAttr(o.title || "this opportunity")} on ${escapeAttr(source || "the organisation's website")} (opens in a new tab)">View details <span aria-hidden="true">↗</span></a>
-      </div>` : ""}
+        ${source ? `<span class="oc-source">${escapeHTML(source)}</span>` : ""}` : ""}
+      </div>
     </article>
   `;
+}
+
+/** The deadline as a calendar-style block: "17 / Nov 2026 / 7 days left". */
+function dateBlock(raw) {
+  const full = String(raw || "").trim();
+  const d = parseDeadline(full);
+  if (!d) {
+    const word = !full ? "Open" : /^rolling/i.test(full) ? "Rolling" : /^annual/i.test(full) ? "Annual" : "Open";
+    return { day: word, month: "No fixed date", left: "", cls: "is-rolling", title: full };
+  }
+  const days = Math.ceil((d.getTime() - Date.now()) / 86400000);
+  const month = d.toLocaleDateString("en-GB", { month: "short", year: "numeric" });
+  let left = "", cls = "is-open";
+  if (days < 0) { left = "Closed"; cls = "is-closed"; }
+  else if (days === 0) { left = "Closes <span>today</span>"; cls = "is-soon"; }
+  else if (days <= 14) { left = `${days} day${days === 1 ? "" : "s"} <span>left</span>`; cls = "is-soon"; }
+  return { day: String(d.getDate()), month, left, cls, title: formatDeadline(full) };
+}
+
+const SINGULAR = { Internships: "Internship", Jobs: "Job", Fellowships: "Fellowship", Scholarships: "Scholarship", Competitions: "Competition", Volunteering: "Volunteering" };
+function singular(cat) {
+  const c = String(cat || "").trim();
+  return SINGULAR[c] || c;
+}
+
+/** "Remote (must be based in one of 11 countries)" -> "Remote". */
+function shortLocation(loc) {
+  return String(loc || "").replace(/\s*\([^)]*\)/g, "").replace(/\s+/g, " ").trim();
+}
+
+/** "Year 3 / Year 4 / Final Year" -> "Year 3, Year 4, Final Year";
+ *  sentences and "Not specified" are left out (the summary covers them). */
+function shortEligibility(raw) {
+  const s = String(raw || "").trim();
+  if (!s || /not specified|^any$|^n\/?a$/i.test(s)) return "";
+  const parts = s.split(/\s*[\/,;]\s*/).filter(Boolean);
+  const joined = parts.join(", ");
+  if (joined.length > 48 || parts.some((p) => p.split(" ").length > 3)) return "";
+  return joined;
+}
+
+/** Summary without emoji or a repeated "DEADLINE 17 NOVEMBER — 11 days." lead-in. */
+function cleanSummary(raw) {
+  return String(raw || "")
+    .replace(/[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}]️?/gu, "")
+    .replace(/^\s*(deadline|closes|closing)\b[^.]*\.\s*/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 /** "unicef.org" from an apply link: where the details are. */
@@ -1225,7 +1277,9 @@ async function toggleBookmark(btn) {
   }
   btn.setAttribute("aria-pressed", wasBookmarked ? "false" : "true");
   btn.setAttribute("aria-label", wasBookmarked ? "Save this opportunity" : "Remove from saved");
-  btn.textContent = wasBookmarked ? "☆" : "★";
+  btn.title = wasBookmarked ? "Save" : "Saved";
+  const mark = btn.querySelector("path");
+  if (mark) mark.setAttribute("fill", wasBookmarked ? "none" : "currentColor");
   updateBookmarkChip();
 
   // Guests keep session-only bookmarks (matches prior behaviour).

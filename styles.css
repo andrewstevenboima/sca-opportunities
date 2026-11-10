@@ -3186,3 +3186,8 @@ em { font-style: italic; color: var(--gold); }
 
 /* The results line already draws the rule above the list */
 .opp-grid.is-list { border-top: 0; }
+
+/* Anything the page marks hidden stays hidden, whatever display a class
+   gives it. Without this, .nav-badge (display: inline-flex) kept showing
+   a "0" next to Community and on the bell when nothing was unread. */
+[hidden] { display: none !important; }

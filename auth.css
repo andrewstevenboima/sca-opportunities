@@ -304,3 +304,130 @@
 .auth-step-lead { margin: 0 0 1rem; color: var(--ink-soft); line-height: 1.5; }
 .auth-link { background: none; border: none; cursor: pointer; text-decoration: underline; padding: 0; font: inherit; }
 #code-input, #reset-code { letter-spacing: 0.3em; font-variant-numeric: tabular-nums; }
+
+/* =============================================================
+   My Account v2: a profile header, a details panel, and the saved
+   and recommended opportunities as ruled lists, matching the
+   opportunities listing.
+   ============================================================= */
+.acct-head { background: var(--cream); border-bottom: 1px solid var(--line); }
+.acct-head-inner {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center; gap: 28px; padding-top: 48px; padding-bottom: 40px;
+}
+.acct-avatar { width: 112px; height: 112px; background: var(--white); border: 1px solid var(--line-strong); }
+.acct-avatar span { font-size: 2rem; color: var(--ink-soft); }
+.acct-eyebrow {
+  margin: 0 0 6px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--gold);
+}
+.acct-name {
+  margin: 0; font-family: var(--font-display); font-weight: 500;
+  font-size: clamp(1.9rem, 3.4vw, 2.6rem); line-height: 1.1; letter-spacing: -0.015em; color: var(--ink);
+}
+.acct-summary { margin: 8px 0 0; font-size: 1rem; color: var(--ink-soft); }
+.acct-stats { margin: 14px 0 0; display: flex; align-items: baseline; gap: 10px; font-size: 0.92rem; color: var(--ink-mute); }
+.acct-stats a { color: var(--ink-soft); text-decoration: none; }
+.acct-stats a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.acct-stats strong { color: var(--ink); font-weight: 600; }
+.acct-actions { display: flex; align-items: center; gap: 18px; }
+.acct-btn {
+  font: inherit; font-size: 0.9rem; font-weight: 600; color: var(--ink); background: var(--white);
+  border: 1px solid var(--ink); border-radius: 6px; padding: 10px 18px; cursor: pointer; text-decoration: none;
+  display: inline-flex; align-items: center;
+}
+.acct-btn:hover, .acct-btn:focus-visible { background: var(--ink); color: var(--white); }
+.acct-logout {
+  font: inherit; font-size: 0.9rem; color: var(--ink-mute); background: none; border: 0; padding: 0; cursor: pointer;
+}
+.acct-logout:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+
+/* Body: details on the left, opportunities on the right */
+.acct-body {
+  display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 48px; align-items: start;
+  padding-top: 40px; padding-bottom: 72px;
+}
+.acct-body.is-editing { grid-template-columns: minmax(0, 1fr); }
+.acct-body.is-editing .acct-main { display: none; }
+
+.acct-panel {
+  background: var(--white); border: 1px solid var(--line-strong); border-radius: 8px; padding: 22px 22px 18px;
+  position: sticky; top: 96px;
+}
+.acct-panel-title, .acct-section-title {
+  margin: 0; font-family: var(--font-display); font-weight: 500; font-size: 1.3rem; color: var(--ink);
+}
+.acct-details { margin: 14px 0 0; }
+.acct-details div {
+  display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 12px;
+  padding: 11px 0; border-top: 1px solid var(--line);
+}
+.acct-details dt { font-size: 0.82rem; color: var(--ink-mute); }
+.acct-details dd { margin: 0; font-size: 0.92rem; font-weight: 500; color: var(--ink); }
+.acct-note { margin: 14px 0 0; padding-top: 14px; border-top: 1px solid var(--line); font-size: 0.8rem; line-height: 1.5; color: var(--ink-mute); }
+
+.account-edit-section {
+  background: var(--white); border: 1px solid var(--line-strong); border-radius: 8px; padding: 28px;
+}
+.account-edit-section .section-title { font-family: var(--font-display); font-weight: 500; font-size: 1.5rem; margin: 0; }
+.account-edit-section .edit-profile-form { max-width: 640px; }
+
+.acct-main { display: flex; flex-direction: column; gap: 48px; min-width: 0; }
+.acct-section-head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
+  padding-bottom: 12px; border-bottom: 1px solid var(--ink);
+}
+.acct-more { font-size: 0.88rem; font-weight: 600; color: var(--ink); text-decoration: none; }
+.acct-more:hover { text-decoration: underline; text-underline-offset: 3px; }
+.acct-section-sub { margin: 12px 0 0; font-size: 0.9rem; color: var(--ink-mute); }
+
+.acct-row {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 20px; align-items: center;
+  padding: 18px 2px; border-bottom: 1px solid var(--line);
+}
+.acct-row.has-date { grid-template-columns: 64px minmax(0, 1fr) auto; }
+.acct-row .oc-date { padding-right: 14px; }
+.acct-row .oc-day { font-size: 1.6rem; }
+.acct-row .oc-date.is-rolling .oc-day { font-size: 1rem; padding-top: 4px; }
+.acct-row h3 { margin: 0; font-family: var(--font-display); font-weight: 500; font-size: 1.08rem; line-height: 1.3; }
+.acct-row h3 a { color: var(--ink); text-decoration: none; }
+.acct-row h3 a:hover { text-decoration: underline; text-decoration-color: var(--gold-bright); text-underline-offset: 4px; }
+.acct-row-body p { margin: 4px 0 0; font-size: 0.88rem; color: var(--ink-soft); }
+.acct-row-actions { display: flex; align-items: center; gap: 16px; }
+.acct-row .oc-view {
+  font-size: 0.85rem; font-weight: 600; color: var(--ink); background: none; text-decoration: none; white-space: nowrap;
+  padding: 7px 13px; border: 1px solid var(--ink); border-radius: 6px;
+}
+.acct-row .oc-view:hover { background: var(--ink); color: var(--white); }
+.acct-row .saved-remove { color: var(--ink-mute); font-size: 0.85rem; }
+.acct-row .saved-remove:hover { color: var(--red); text-decoration: underline; text-underline-offset: 3px; }
+
+.acct-empty {
+  margin-top: 20px; padding: 28px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--cream);
+  display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
+}
+.acct-empty[hidden] { display: none; }
+.acct-empty p { margin: 0; color: var(--ink-soft); font-size: 0.92rem; max-width: 46ch; }
+.acct-empty .acct-empty-title { font-family: var(--font-display); font-size: 1.15rem; color: var(--ink); }
+.acct-empty .acct-btn { margin-top: 12px; }
+
+@media (max-width: 900px) {
+  .acct-body { grid-template-columns: minmax(0, 1fr); gap: 36px; }
+  .acct-panel { position: static; }
+}
+@media (max-width: 640px) {
+  .acct-head-inner { grid-template-columns: auto minmax(0, 1fr); gap: 16px 18px; padding-top: 28px; padding-bottom: 24px; }
+  .acct-avatar { width: 72px; height: 72px; align-self: start; }
+  .acct-avatar span { font-size: 1.4rem; }
+  .acct-actions { grid-column: 1 / -1; }
+  .acct-actions .acct-btn { flex: 1; justify-content: center; }
+  .acct-row, .acct-row.has-date { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .acct-row.has-date { grid-template-columns: 52px minmax(0, 1fr); }
+  .acct-row-actions { grid-column: 1 / -1; }
+  .acct-row.has-date .acct-row-actions { grid-column: 2; }
+  .account-edit-section { padding: 20px; }
+}
+/* The date block carries a grid-area from the listing; here it is just the first column */
+.acct-row .oc-date { grid-area: auto; min-height: 0; align-self: start; }
+.acct-row-body, .acct-row-actions { grid-area: auto; }
+.acct-row .oc-view { margin-left: 0; }

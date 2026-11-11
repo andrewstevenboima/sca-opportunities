@@ -45,33 +45,65 @@ document.addEventListener("DOMContentLoaded", async () => {
     return escapeHTML(str);
   }
 
+  // Names and universities are typed by students, so casing varies
+  // ("african leadership university", "jea"). Shown tidied; stored as typed.
+  const SMALL = new Set(["of", "and", "the", "in", "for", "de", "du", "la", "et"]);
+  function tidy(text) {
+    const s = String(text || "").trim().replace(/\s+/g, " ");
+    // Only all-lowercase or ALL-CAPS text is re-cased; anything with its
+    // own mix of capitals ("McKinsey", "UoR") is left as typed.
+    if (s !== s.toLowerCase() && s !== s.toUpperCase()) return s;
+    return s.toLowerCase().split(" ").map((w, i) =>
+      i > 0 && SMALL.has(w) ? w : w.charAt(0).toUpperCase() + w.slice(1)
+    ).join(" ");
+  }
+
   function renderCard(profile) {
     const card = document.createElement("a");
-    card.className = "member-card";
+    card.className = "sd-row";
     card.href = `member.html?id=${encodeURIComponent(profile.id)}`;
-    const meta = [profile.region, profile.country, profile.university].filter(Boolean).join(" · ");
+    const name = tidy(profile.full_name) || "A student";
+    const uni = tidy(profile.university);
+    const place = [profile.country, profile.region].filter(Boolean).join(" · ");
+    const isMe = profile.id === currentUserId;
     card.innerHTML = `
-      <div class="account-avatar account-avatar--lg">
+      <div class="account-avatar sd-avatar">
         ${profile.avatar_url
           ? `<img src="${escapeAttr(profile.avatar_url)}" alt="" />`
-          : `<span>${escapeHTML(initials(profile.full_name))}</span>`}
+          : `<span>${escapeHTML(initials(name))}</span>`}
       </div>
-      <h3 class="member-card-name">${escapeHTML(profile.full_name || "A student")}${profile.id === currentUserId ? " (you)" : ""}</h3>
-      <p class="member-card-meta">${escapeHTML(meta || "SCA student")}</p>
+      <div class="sd-body">
+        <span class="sd-name">${escapeHTML(name)}${isMe ? ' <span class="sd-you">You</span>' : ""}</span>
+        ${uni ? `<span class="sd-uni">${escapeHTML(uni)}</span>` : ""}
+        <span class="sd-place">${escapeHTML(place || "SCA student")}</span>
+      </div>
+      <span class="sd-go" aria-hidden="true">View profile <span>→</span></span>
     `;
     return card;
   }
 
   let allProfiles = [];
 
+  const countEl = document.getElementById("students-count");
+
   function renderList(profiles) {
     grid.innerHTML = "";
     empty.hidden = !!profiles.length;
     profiles.forEach((p) => grid.appendChild(renderCard(p)));
+    if (countEl) {
+      const n = profiles.length;
+      countEl.textContent = search.value.trim()
+        ? `${n} of ${allProfiles.length} student${allProfiles.length === 1 ? "" : "s"}`
+        : `${n} student${n === 1 ? "" : "s"}`;
+    }
   }
 
   try {
-    allProfiles = await window.SCA.listAllProfiles();
+    // You first, then everyone else alphabetically.
+    allProfiles = (await window.SCA.listAllProfiles()).sort((a, b) =>
+      (b.id === currentUserId) - (a.id === currentUserId) ||
+      tidy(a.full_name).localeCompare(tidy(b.full_name))
+    );
     renderList(allProfiles);
   } catch (err) {
     grid.innerHTML = `<p>Couldn't load students. Please try refreshing.</p>`;

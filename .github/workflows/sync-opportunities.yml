@@ -1,0 +1,37 @@
+name: Sync opportunities from the Sheet
+
+# Keeps opportunities.json (the backup the site, chat and dashboard use when
+# the Sheet can't be reached) identical to the SCA Opportunities Sheet.
+on:
+  schedule:
+    - cron: "17 * * * *"   # every hour
+  workflow_dispatch: {}     # "Run workflow" button for an immediate sync
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-opportunities
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Copy the Sheet into opportunities.json
+        run: python scripts/sync_opportunities.py
+      - name: Commit if anything changed
+        run: |
+          if git diff --quiet -- opportunities.json; then
+            echo "Backup already matches the Sheet."
+            exit 0
+          fi
+          git config user.name "sca-opportunities-sync"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add opportunities.json
+          git commit -m "Sync opportunities.json from the Sheet"
+          git push

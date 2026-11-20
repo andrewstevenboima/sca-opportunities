@@ -234,6 +234,8 @@
     var userId = null;
     var current = null;     // course being played
     var saveTimer = null;
+    var saveState = "idle";  // idle | saving | saved | failed
+    var saveError = "";
 
     async function signedInUser() {
       try {
@@ -248,7 +250,10 @@
       if (!userId) return;
       try {
         (await window.SCA.listCourseProgress(userId)).forEach(function (r) { progress[r.course_slug] = r; });
-      } catch (e) { /* the list still works without it */ }
+      } catch (e) {
+        // The list still works without it; say why in the console.
+        console.warn("[courses] could not load saved progress:", e && (e.message || e));
+      }
     }
 
     function totalLessons(c) { return (c.lessonIds && c.lessonIds.length) || c.lessonsCount || 0; }
@@ -262,20 +267,31 @@
       return total ? Math.min(95, Math.round(((r.lessons_seen || []).length / total) * 100)) : 0;
     }
 
-    function scheduleSave() {
+    function scheduleSave(delay) {
       if (!userId || !current) return;
       clearTimeout(saveTimer);
+      var course = current;
       saveTimer = setTimeout(function () {
-        var r = progress[current.slug];
+        var r = progress[course.slug];
+        saveState = "saving";
         window.SCA.saveCourseProgress(userId, {
-          course_slug: current.slug,
+          course_slug: course.slug,
           lessons_seen: r.lessons_seen,
-          lessons_total: totalLessons(current),
+          lessons_total: totalLessons(course),
           last_lesson: r.last_lesson,
           quiz_score: r.quiz_score,
           completed_at: r.completed_at,
-        }).catch(function () { /* try again on the next lesson */ });
-      }, 1200);
+        }).then(function () {
+          saveState = "saved"; saveError = "";
+          updateStatus();
+        }).catch(function (e) {
+          saveState = "failed";
+          saveError = (e && (e.message || e.code)) || String(e);
+          console.warn("[courses] could not save progress:", e);
+          updateStatus();
+          if (current === course) scheduleSave(15000); // try again
+        });
+      }, delay || 1200);
     }
 
     // Done = every lesson opened and, if the course has a quiz, the quiz finished.
@@ -298,11 +314,13 @@
         if (r.lessons_seen.indexOf(d.lessonId) < 0) r.lessons_seen = r.lessons_seen.concat([d.lessonId]);
         r.last_lesson = d.lessonId;
         markIfComplete(r);
+        saveState = "saving";
         updateStatus();
         scheduleSave();
       } else if (d.type === "sca-course:quiz" && typeof d.score === "number" && d.score >= 0 && d.score <= 100) {
         r.quiz_score = Math.max(r.quiz_score || 0, Math.round(d.score));
         markIfComplete(r);
+        saveState = "saving";
         updateStatus();
         scheduleSave();
       }
@@ -322,10 +340,15 @@
       }
       var r = progress[current.slug];
       var pct = percent(current);
+      if (saveState === "failed") {
+        el.textContent = "Your progress couldn't be saved just now (" + saveError.slice(0, 80) + "). Trying again…";
+        return;
+      }
+      var saved = saveState === "saved" ? " · progress saved" : saveState === "saving" ? " · saving…" : "";
       el.textContent = r && r.completed_at
-        ? "Completed" + (r.quiz_score != null ? " · quiz " + r.quiz_score + "%" : "") + " · progress saved"
-        : pct >= 95 && current.hasQuiz ? "Almost there: finish the quiz to complete the course · progress saved"
-        : pct ? pct + "% done · progress saved" : "Your progress is saved as you go";
+        ? "Completed" + (r.quiz_score != null ? " · quiz " + r.quiz_score + "%" : "") + saved
+        : pct >= 95 && current.hasQuiz ? "Almost there: finish the quiz to complete the course" + saved
+        : pct ? pct + "% done" + saved : "Your progress is saved as you go";
     }
 
     function card(c) {

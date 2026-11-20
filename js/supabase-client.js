@@ -392,6 +392,26 @@ const SCA = {
     });
   },
 
+  // Course progress (courses.html; supabase/course-progress.sql).
+  async listCourseProgress(userId) {
+    if (!sb) return [];
+    const { data, error } = await sb
+      .from("course_progress")
+      .select("course_slug, lessons_seen, lessons_total, last_lesson, quiz_score, completed_at, updated_at")
+      .eq("user_id", userId);
+    if (error) throw error;
+    return data || [];
+  },
+
+  async saveCourseProgress(userId, row) {
+    if (!sb) return;
+    const { error } = await sb.from("course_progress").upsert(
+      { ...row, user_id: userId, updated_at: new Date().toISOString() },
+      { onConflict: "user_id,course_slug" }
+    );
+    if (error) throw error;
+  },
+
   async listBookmarks(userId) {
     if (!sb) return [];
     const { data, error } = await sb

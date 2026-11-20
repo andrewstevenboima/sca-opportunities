@@ -231,7 +231,7 @@
       if (c.cover) img.src = abs(c.cover);
       var body = document.createElement("div"); body.className = "course-body";
       var meta = document.createElement("div"); meta.className = "course-meta";
-      [c.category, c.level, c.lessonsCount ? c.lessonsCount + " lessons" : "", c.price > 0 ? (c.currency + " " + c.price) : "Free"]
+      [c.category, c.level, c.lessonsCount ? c.lessonsCount + " lessons" : "", c.duration ? c.duration.replace(/^About /, "~") : "", c.price > 0 ? (c.currency + " " + c.price) : "Free"]
         .filter(Boolean).forEach(function (t) { var s = document.createElement("span"); s.className = "course-pill"; s.textContent = t; meta.append(s); });
       var h = document.createElement("h3"); h.textContent = c.title;
       var p = document.createElement("p"); p.textContent = c.subtitle || "";

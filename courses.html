@@ -182,7 +182,7 @@
           <a id="course-player-open" class="course-open" target="_blank" rel="noopener">Open full screen ↗</a>
         </div>
         <iframe id="course-frame" title="Course" allow="fullscreen; autoplay" allowfullscreen></iframe>
-        <p class="course-note">Your place is saved in this browser, so you can come back and continue where you stopped.</p>
+        <p class="course-note"><span id="course-player-status" aria-live="polite"></span></p>
       </div>
 
       <div id="course-list">
@@ -209,6 +209,9 @@
     .course-back, .course-open { color: var(--gold); font-weight: 600; text-decoration: none; font-size: 14px; }
     #course-frame { width: 100%; height: min(80vh, 900px); min-height: 520px; border: 1px solid var(--line); border-radius: 16px; background: var(--white); }
     .course-note { color: var(--ink-mute); font-size: 13px; margin-top: 10px; }
+    .course-note a { color: var(--gold); font-weight: 600; }
+    .course-progress { height: 6px; border-radius: 999px; background: var(--gold-wash); overflow: hidden; margin-top: 4px; }
+    .course-progress span { display: block; height: 100%; background: var(--gold); border-radius: 999px; }
   </style>
 
   <script>
@@ -222,6 +225,109 @@
 
     function abs(path) { return new URL(path, LIBRARY).toString(); }
 
+    // ---- Progress (saved for signed-in students; supabase/course-progress.sql) ----
+    // Each course carries SCAI-LMS's sca-tracker.js, which posts the open
+    // lesson and quiz scores to this page. Nothing is saved without sign-in.
+    var LIBRARY_ORIGIN = new URL(LIBRARY).origin;
+    var LESSON_ID = /^[A-Za-z0-9_-]{1,64}$/;
+    var progress = {};      // slug -> saved row
+    var userId = null;
+    var current = null;     // course being played
+    var saveTimer = null;
+
+    async function signedInUser() {
+      try {
+        if (!window.SCA) return null;
+        var session = await window.SCA.getSession();
+        return (session && session.user && session.user.id) || null;
+      } catch (e) { return null; }
+    }
+
+    async function loadProgress() {
+      userId = await signedInUser();
+      if (!userId) return;
+      try {
+        (await window.SCA.listCourseProgress(userId)).forEach(function (r) { progress[r.course_slug] = r; });
+      } catch (e) { /* the list still works without it */ }
+    }
+
+    function totalLessons(c) { return (c.lessonIds && c.lessonIds.length) || c.lessonsCount || 0; }
+
+    function percent(c) {
+      var r = progress[c.slug];
+      if (!r) return 0;
+      if (r.completed_at) return 100;
+      var total = totalLessons(c);
+      // 100% only once completed (quiz included); until then at most 95%.
+      return total ? Math.min(95, Math.round(((r.lessons_seen || []).length / total) * 100)) : 0;
+    }
+
+    function scheduleSave() {
+      if (!userId || !current) return;
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(function () {
+        var r = progress[current.slug];
+        window.SCA.saveCourseProgress(userId, {
+          course_slug: current.slug,
+          lessons_seen: r.lessons_seen,
+          lessons_total: totalLessons(current),
+          last_lesson: r.last_lesson,
+          quiz_score: r.quiz_score,
+          completed_at: r.completed_at,
+        }).catch(function () { /* try again on the next lesson */ });
+      }, 1200);
+    }
+
+    // Done = every lesson opened and, if the course has a quiz, the quiz finished.
+    function markIfComplete(r) {
+      var total = totalLessons(current);
+      if (r.completed_at || !total || r.lessons_seen.length < total) return;
+      if (current.hasQuiz && r.quiz_score == null) return;
+      r.completed_at = new Date().toISOString();
+    }
+
+    function onTracker(event) {
+      if (event.origin !== LIBRARY_ORIGIN || !current) return;
+      var frame = document.getElementById("course-frame");
+      if (event.source !== frame.contentWindow) return;
+      var d = event.data || {};
+      if (typeof d.type !== "string" || d.slug !== current.slug) return;
+      var r = progress[current.slug] || (progress[current.slug] = { course_slug: current.slug, lessons_seen: [], quiz_score: null, completed_at: null });
+      if (d.type === "sca-course:lesson" && LESSON_ID.test(d.lessonId || "")) {
+        if (current.lessonIds && current.lessonIds.length && current.lessonIds.indexOf(d.lessonId) < 0) return;
+        if (r.lessons_seen.indexOf(d.lessonId) < 0) r.lessons_seen = r.lessons_seen.concat([d.lessonId]);
+        r.last_lesson = d.lessonId;
+        markIfComplete(r);
+        updateStatus();
+        scheduleSave();
+      } else if (d.type === "sca-course:quiz" && typeof d.score === "number" && d.score >= 0 && d.score <= 100) {
+        r.quiz_score = Math.max(r.quiz_score || 0, Math.round(d.score));
+        markIfComplete(r);
+        updateStatus();
+        scheduleSave();
+      }
+    }
+    window.addEventListener("message", onTracker);
+
+    function updateStatus() {
+      var el = document.getElementById("course-player-status");
+      if (!el || !current) return;
+      if (!userId) {
+        el.innerHTML = "";
+        var a = document.createElement("a");
+        a.href = "login.html";
+        a.textContent = "Sign in to save your progress";
+        el.append(a);
+        return;
+      }
+      var r = progress[current.slug];
+      var pct = percent(current);
+      el.textContent = r && r.completed_at
+        ? "Completed" + (r.quiz_score != null ? " · quiz " + r.quiz_score + "%" : "") + " · progress saved"
+        : pct >= 95 && current.hasQuiz ? "Almost there: finish the quiz to complete the course · progress saved"
+        : pct ? pct + "% done · progress saved" : "Your progress is saved as you go";
+    }
+
     function card(c) {
       var a = document.createElement("a");
       a.className = "course-card";
@@ -231,12 +337,23 @@
       if (c.cover) img.src = abs(c.cover);
       var body = document.createElement("div"); body.className = "course-body";
       var meta = document.createElement("div"); meta.className = "course-meta";
-      [c.category, c.level, c.lessonsCount ? c.lessonsCount + " lessons" : "", c.price > 0 ? (c.currency + " " + c.price) : "Free"]
+      [c.category, c.level, c.lessonsCount ? c.lessonsCount + " lessons" : "", c.duration ? c.duration.replace(/^About /, "~") : "", c.price > 0 ? (c.currency + " " + c.price) : "Free"]
         .filter(Boolean).forEach(function (t) { var s = document.createElement("span"); s.className = "course-pill"; s.textContent = t; meta.append(s); });
       var h = document.createElement("h3"); h.textContent = c.title;
       var p = document.createElement("p"); p.textContent = c.subtitle || "";
-      var cta = document.createElement("span"); cta.className = "course-cta"; cta.textContent = "Start course →";
-      body.append(meta, h, p, cta); a.append(img, body);
+      var pct = percent(c);
+      var cta = document.createElement("span"); cta.className = "course-cta";
+      cta.textContent = pct >= 100 ? "Completed ✓ · Review →" : pct > 0 ? "Continue · " + pct + "% done →" : "Start course →";
+      body.append(meta, h, p);
+      if (pct > 0) {
+        var bar = document.createElement("div"); bar.className = "course-progress";
+        bar.setAttribute("role", "progressbar"); bar.setAttribute("aria-valuenow", String(pct));
+        bar.setAttribute("aria-valuemin", "0"); bar.setAttribute("aria-valuemax", "100");
+        bar.setAttribute("aria-label", "Course progress");
+        var fill = document.createElement("span"); fill.style.width = pct + "%"; bar.append(fill);
+        body.append(bar);
+      }
+      body.append(cta); a.append(img, body);
       return a;
     }
 
@@ -244,15 +361,30 @@
       document.getElementById("course-list").hidden = true;
       document.getElementById("course-player").hidden = false;
       document.getElementById("course-player-title").textContent = c.title;
-      document.getElementById("course-frame").src = abs(c.launch);
+      current = c;
+      // Pick up where they left off.
+      var saved = progress[c.slug];
+      var resume = saved && saved.last_lesson && LESSON_ID.test(saved.last_lesson) && !saved.completed_at
+        ? "#/lessons/" + saved.last_lesson : "";
+      document.getElementById("course-frame").src = abs(c.launch) + resume;
+      updateStatus();
       document.getElementById("course-frame").title = c.title;
       document.getElementById("course-player-open").href = abs(c.launch);
       document.title = c.title + " | Courses | SCA Opportunities";
     }
 
-    fetch(LIBRARY + "catalog.json", { cache: "no-cache" })
-      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(function (data) {
+    var progressReady = new Promise(function (resolve) {
+      // supabase-client.js loads after this script.
+      window.addEventListener("load", function () { loadProgress().then(resolve, resolve); });
+    });
+
+    Promise.all([
+      fetch(LIBRARY + "catalog.json", { cache: "no-cache" })
+        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }),
+      progressReady,
+    ])
+      .then(function (results) {
+        var data = results[0];
         var courses = (data.courses || []).filter(function (c) { return c.published !== false; });
         courses.sort(function (a, b) { return (b.featured === true) - (a.featured === true); });
         var chosen = wanted && courses.find(function (c) { return c.slug === wanted; });

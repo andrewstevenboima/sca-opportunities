@@ -1,5 +1,5 @@
 {
-  "updated": "2026-11-22T15:26:15Z",
+  "updated": "2026-11-24T11:02:05Z",
   "note": "Copied automatically from the SCA Opportunities Google Sheet every hour.",
   "opportunities": [
     {
@@ -950,6 +950,25 @@
       "source": "ITU official page",
       "status": "live",
       "date_posted": "2026-11-22",
+      "raw_jd": ""
+    },
+    {
+      "id": "SCA-2026-164",
+      "category": "Scholarships",
+      "title": "2027 CAS-ANSO Scholarship – Fully Funded Master's and PhD Studies in China",
+      "organization": "Chinese Academy of Sciences (CAS) / Alliance of International Science Organizations (ANSO) via USTC and UCAS",
+      "location": "China",
+      "remote": "No",
+      "deadline": "2027-02-28",
+      "eligibility_year": "Final Year / Recent Grad (Master's: born after 1 Jan 1997; PhD: born after 1 Jan 1992)",
+      "eligibility_nationality": "Non-Chinese citizens (developing countries preferred, including Africa)",
+      "field": "Science, Technology, Engineering",
+      "tags": "Scholarship, Fully Funded, Master's, PhD, China, CAS, ANSO, STEM, Stipend, No Application Fee",
+      "description": "Fully funded Master's and PhD scholarship at Chinese Academy of Sciences institutes, applied for through the USTC or UCAS international admission system (select CAS-ANSO Scholarship). WHAT YOU GET: full tuition waiver, application fee waiver, monthly stipend (Master's 3,000 CNY for up to 36 months; PhD 6,000-7,000 CNY for up to 48 months), health insurance, one international trip to China and a one-time visa/residence permit allowance. Deadline: 28 February 2027 (Beijing time). ⚠️ AGE LIMITS: Master's applicants must be born after 1 January 1997; PhD applicants after 1 January 1992. ⚠️ You must meet USTC/UCAS admission criteria and be proficient in English or Chinese. ⚠️ Confirm the deadline on the official USTC or UCAS admission site, as the listing we checked did not state it.",
+      "apply_link": "https://youthgrowthportal.org/opportunity/2027-cas-anso-scholarship/",
+      "source": "Youth Growth Portal",
+      "status": "live",
+      "date_posted": "2026-11-24",
       "raw_jd": ""
     }
   ]
